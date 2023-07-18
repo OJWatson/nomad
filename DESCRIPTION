@@ -1,0 +1,21 @@
+Package: nomad
+Title: Mobility modelling for infetious disease epidemiology
+Version: 0.1.0
+Authors@R: 
+    c(person(given = "OJ",
+             family = "Watson",
+             role = c("aut", "cre"),
+             email = "oj.watson@hotmail.co.uk",
+             comment = c(ORCID = "0000-0003-2374-0741")))
+Description: nomad is an R package for simulating mobility data primarily for
+  infectious disease epidemiology and in sub-Saharan contexts. The package 
+  provides a range of mobility models that allow users to simulate mobility
+  matrices, either using pre-trained models or by allowing users to provide
+  mobility data for their context and fitting models to these data. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Suggests:
+    testthat
