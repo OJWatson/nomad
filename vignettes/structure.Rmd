@@ -75,4 +75,15 @@ Lastly, provide suppoting vignettes and guides to give demonstration of full
 functionality, relationship to the `mobility` package as well as how users with
 their own mobility data can use `mobility` to fit mobility models and how to 
 integrate these with `nomad` either by submitting new PRs, or by converting
-their mobility model into one that can leverate `nomad` functionality. 
+their mobility model into one that can leverage `nomad` functionality. 
+
+### 4. Extensions (Milestone 2)
+
+1. Tool for creating ensemble mobility models (predicting from multiple models
+with appropriate weights based on user needs)
+2. Interactive tool for demonstrating the difference between model predictions
+and linking this to an ensemble (widget slider for different weights)
+3. Vignette to demonstrate how to select a model to use. Possible ideas include
+simulating dummy infectious disease spatial model and then identifying the best
+model best on goodness of fit based on different mobility models, while fixing 
+everything else. 
