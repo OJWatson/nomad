@@ -1,27 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://ojwatson.github.io/nomad/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
+    <loc>https://ojwatson.github.io/nomad/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>/articles/index.html</loc>
+    <loc>https://ojwatson.github.io/nomad/articles/data.html</loc>
   </url>
   <url>
-    <loc>/articles/introduction.html</loc>
+    <loc>https://ojwatson.github.io/nomad/articles/index.html</loc>
   </url>
   <url>
-    <loc>/articles/structure.html</loc>
+    <loc>https://ojwatson.github.io/nomad/articles/introduction.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://ojwatson.github.io/nomad/articles/structure.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://ojwatson.github.io/nomad/authors.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://ojwatson.github.io/nomad/index.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/R6_nomad_model.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/zambia_cdr_2020_mod_dd_exp.html</loc>
   </url>
 </urlset>
