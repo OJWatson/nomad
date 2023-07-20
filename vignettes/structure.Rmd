@@ -21,7 +21,7 @@ different components (models, underlying data, population hepers etc).
 
 The package components are shown below:
 
-![nomad structure](imgs/structure.png)
+![nomad structure](imgs/structure.jpg)
 ### 1. Models
 
 The main workhorse is an `R6` mobility model class. This class will store 
