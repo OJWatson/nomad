@@ -44,7 +44,9 @@ producing the `mobility` models available in nomad.
 The data catalgoue will be a structure data set (format undecided as yet) for 
 storing meta data about each mobility data set that has been used to create 
 mobility models. The meta data (mobility data survey size, sampling scheme, 
-respondent characteristics, location, associated publication etc) will help guide 
+respondent characteristics, location, associated publication, date of survey, 
+description of data censoring or aggregation, 
+etc) will help guide 
 users to understand which data source seems most suitable for their use case. 
 
 For example, end users may want to choose mobility models that have been fit
@@ -87,3 +89,5 @@ and linking this to an ensemble (widget slider for different weights)
 simulating dummy infectious disease spatial model and then identifying the best
 model best on goodness of fit based on different mobility models, while fixing 
 everything else. 
+4. PRs to `mobility` for custom model specification
+

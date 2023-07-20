@@ -1,0 +1,91 @@
+---
+title: "Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The following vignette provides an overview of the different mobility data sets
+that underpin the models available in `nomad`. This overview provides additional
+information that will help explain the differences between the data sets, which
+we provide to help users identify the most suitable mobility model to use for 
+their use case.
+
+## Available Data
+
+
+
+## Adding new mobility models to `nomad`
+
+When new mobility data sets are generated, users who wish to easily share the 
+resultant mobility models with the wider community can easily add these to `nomad`. 
+To ensure consistency with `nomad` and ensure data transparancy and reproducibility, 
+please follow these steps
+
+If you wanted to later to and edit one of your datasets, here’s what that workflow would look like:
+
+### Update the data catalogue
+
+1. Fork the `nomad` repository and make a new branch
+2. Go into `data-raw/` and add a new row in `mobility_db.csv` to describe your new mobility data set
+3. Run the `mobility_db_load.R` script to generate the `mobility_db` R object
+4. Save the new data catalogue object with `usethis::use_data(mobility_db, overwrite = TRUE)`.
+
+### Add your mobility model to `nomad`
+
+1. Open `R/data.R` and add an additional entry for your new mobility model. 
+2. For help adding this entry, please look at previous entries for an example:
+
+```
+#' Zambia 2020 Call Data Records Exponential Departure-Diffusion Model
+#'
+#' Mobility model generated using [mobility::mobility()] based on call data
+#' records collected in Zambia in 2020 The mobility model is an exponential
+#' Departure-Diffusion model.
+#'
+#' For full metadata of the CDR data, please see `?nomad::mobility_db`
+#'
+#' @format A `nomad::model` class object
+#' @source \url{https://elifesciences.org/articles/68441}
+"zambia_cdr_2020_mod_dd_exp"
+```
+3. The last line above is the name of your `nomad::model` that you now need to create, e.g.
+
+```{r, eval = FALSE}
+zambia_cdr_2020_mod_dd_exp <- nomad::nmd_model(
+  model = zambia_cdr_2020_mod_dd_exp,
+  model_desc = "Zambia 2020 Call Data Records Exponential Departure-Diffusion Model",
+  data_desc = "Zambia 2020 Call Data Records",
+  model_name = "zambia_cdr_2020_mod_dd_exp"
+)
+```
+
+4. You will see the above function call, is very similar to the `data.R` entry. 
+Importantly, the `model_name` argument is what is used to help `nomad` link this 
+model to the extra information you have provided in the `mobility_db.csv` and allow
+the `nomad` helper functions to present users with these longer descriptions. If
+your model does not exist in the internal database (because you are still adding 
+it or do not want to), the `model_desc` and `data_desc` fiels provide a minimal
+set of information for users who you may share the model fit objet with about how
+the model was generated. 
+
+5. Now you have generated the model, we add it to `nomad`:
+
+```{r, eval = FALSE}
+usethis::use_data(zambia_cdr_2020_mod_dd_exp)
+```
+
+6. Run devtool::document() to put those changes into effect.
+7. Run a Check for good measure with devtools::check(document=FALSE) and finally…
+8. Go to Build > Install and Restart (Ctrl+Shift+B)
+9. Commit your changes and push changes to your fork on Github
+10. Make a pull request with your new model
