@@ -20,8 +20,11 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/afyac/mast/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/afyac/mast/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
+## <img src='man/figures/logo.png' style="height:75px;"/>
 
-## Installation
+##  Mobility modelling for infetious disease epidemiology
+
+### Installation
 
 To install `nomad`:
 
@@ -29,7 +32,7 @@ To install `nomad`:
 remotes::install_github("OJWatson/nomad", upgrade = FALSE)
 ```
 
-### Licenses
+#### Licenses
 
 Code: [MIT](http://opensource.org/licenses/MIT) year: `r format(Sys.Date(), "%Y")`, copyright holder: OJ Watson
 

@@ -23,6 +23,13 @@ R6_nomad_model <- R6::R6Class(
                           data_desc,
                           model_name) {
 
+      # checks on args
+      assert_custom_class(model, "mobility.model")
+      assert_string(model_desc)
+      assert_string(data_desc)
+      assert_string(model_name)
+
+      # assign
       private$model <- model
       private$model_desc <- model_desc
       private$data_desc <- data_desc

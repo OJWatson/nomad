@@ -9,7 +9,11 @@ status](https://github.com/OJWatson/nomad/workflows/R-CMD-check/badge.svg)](http
 [![R-CMD-check](https://github.com/afyac/mast/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/afyac/mast/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-## Installation
+## <img src='man/figures/logo.png' style="height:75px;"/>
+
+## Mobility modelling for infetious disease epidemiology
+
+### Installation
 
 To install `nomad`:
 
@@ -17,7 +21,7 @@ To install `nomad`:
 remotes::install_github("OJWatson/nomad", upgrade = FALSE)
 ```
 
-### Licenses
+#### Licenses
 
 Code: [MIT](http://opensource.org/licenses/MIT) year: 2023, copyright
 holder: OJ Watson
