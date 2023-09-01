@@ -9,13 +9,17 @@ reference:
 - title: "Nomad model"
   desc: "Creation of a nomad model"
 - contents:
-  - starts_with("tnomad_")
+  - starts_with("nomad_")
 - title: "Modeling and simulation"
-  desc: "Fitting, summarizing, and checking mobility model objects"
+  desc: "Predicting from, summarizing, and checking mobility model objects"
 - contents:
   - print
   - summary
   - check
   - predict
-  - compare
   - residuals
+- title: "Data Objects"
+  desc: "Mobility database and Mobility Models database"
+- contents:
+  - mobility_db
+  - model_db
