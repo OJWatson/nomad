@@ -20,7 +20,9 @@ Suggests:
     knitr,
     rmarkdown,
     testthat,
-    remotes
+    remotes,
+    DT,
+    tidyverse
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
 Depends: 

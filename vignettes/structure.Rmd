@@ -17,11 +17,16 @@ knitr::opts_chunk$set(
 ## Structure
 
 This is an overall structure of the `nomad` package, which details the 
-different components (models, underlying data, population hepers etc). 
+different components (models, underlying data, population helpers etc). 
 
 The package components are shown below:
 
 ![nomad structure](imgs/structure.jpg)
+The current features are detailed below with respect to specific development 
+milestones: 
+
+## Milestone 1
+
 ### 1. Models
 
 The main workhorse is an `R6` mobility model class. This class will store 
@@ -45,8 +50,7 @@ The data catalgoue will be a structure data set (format undecided as yet) for
 storing meta data about each mobility data set that has been used to create 
 mobility models. The meta data (mobility data survey size, sampling scheme, 
 respondent characteristics, location, associated publication, date of survey, 
-description of data censoring or aggregation, 
-etc) will help guide 
+description of data censoring or aggregation, spatial resolution etc) will help guide 
 users to understand which data source seems most suitable for their use case. 
 
 For example, end users may want to choose mobility models that have been fit
@@ -56,7 +60,7 @@ on mobility data type (flight data, travel surveys etc). To facilitate this need
 
 1. Maps of data locations
 2. Visualisations of survey sizes
-3. ...
+3. Querying spatial scale of surveys, e.g. admin level
 
 Once users have identified suitable data sets, they can identify the associated
 model objects for fits to these data sets. 
@@ -79,9 +83,26 @@ their own mobility data can use `mobility` to fit mobility models and how to
 integrate these with `nomad` either by submitting new PRs, or by converting
 their mobility model into one that can leverage `nomad` functionality. 
 
-### 4. Extensions (Milestone 2)
+## Milestone 2
 
-1. Tool for creating ensemble mobility models (predicting from multiple models
+1. Inclusion of additional models for each data set and way for users to query
+the model fit summary statistics to identify alternative models for the same data.
+2. Warnings when users provide lat/long or shapes that cross international borders
+as there are no data sets currently that are suitable for modelling international
+mobility.
+3. Warning when users provide lat/long or shapes that are below the spatial 
+resolution of the data set used to fit the model, e.g. lat/long is for villages
+inside an admin 2, but the data only had one data point per admin 2 unit. 
+
+## Milestone 3
+
+1. Uncertainty visualisation. From 100 stochastic draws, generate range of 
+metrics to describe each matrix and visualise the upper/lower matrices based on
+the different metrics. 
+
+## Milestone 4
+
+1. Tool for creating simple ensemble mobility models (predicting from multiple models
 with appropriate weights based on user needs)
 2. Interactive tool for demonstrating the difference between model predictions
 and linking this to an ensemble (widget slider for different weights)
@@ -89,5 +110,8 @@ and linking this to an ensemble (widget slider for different weights)
 simulating dummy infectious disease spatial model and then identifying the best
 model best on goodness of fit based on different mobility models, while fixing 
 everything else. 
-4. PRs to `mobility` for custom model specification
+
+## Extra
+
+1. PRs to `mobility` for custom model specification
 

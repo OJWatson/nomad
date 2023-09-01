@@ -19,3 +19,6 @@
 analysis
 ^_pkgdown\.yml$
 ^pkgdown$
+^data-raw$
+^doc$
+^Meta$

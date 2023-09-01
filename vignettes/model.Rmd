@@ -1,0 +1,78 @@
+---
+title: "Models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(tidyverse)
+```
+
+This vignette provides a description of the performance of each model in `nomad`.
+
+
+## Model Performance
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+# create stats
+modstat <- do.call(rbind, lapply(nomad::model_db, nomad::check, plots = FALSE))
+modstat <- as.data.frame(modstat)
+modstat <- modstat %>% 
+  mutate(model = rownames(modstat), .before = 1)
+
+# generate mod descriptions
+nomad_model_descriptions <- function(names){
+  
+  data_names <- gsub("(.*)(_mod.*)", "\\1", names)
+  mobility_model <- vapply(strsplit(names, "_"), FUN.VALUE = character(1), "[[", 5)
+  model_type <- vapply(strsplit(names, "_"), FUN.VALUE = character(1), "[[", 6)
+  data.frame(mobility_model = mobility_model,
+             model_type = model_type,
+             name = data_names)
+}
+
+# bring together and present in DT
+mod_desc <- nomad_model_descriptions(rownames(modstat))
+
+# get suitable columns from mobility_db
+mob_db <- nomad::mobility_db
+mob_db <- mob_db %>% select(name, country, n, type, aggregation) %>% 
+  rename(data_type = type)
+
+# bring together
+tbl <- left_join(
+  cbind(modstat, mod_desc), 
+  mob_db, by = "name") %>% 
+  select(-name) %>% 
+  rename(name = model) %>% 
+  rename(model = mobility_model) %>% 
+  rename(type = model_type)
+
+# Present table
+DT::datatable(tbl, filter = "top") %>% 
+  DT::formatRound(c("DIC", "RMSE","MAPE","R2"), digits = 2)
+```
+
+## Model Fit Checks
+
+TODO: Add here the model check plots to be sourced from data-ram
+
+## Mobility Data
+
+Table of the different mobility data sets used in creating `nomad` models.
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+nomad::mobility_db %>% 
+  DT::datatable(filter = "top")
+
+```
