@@ -4,8 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="nomad">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Package Structure • nomad</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
@@ -13,11 +12,12 @@
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Package Structure">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Package Structure">
 <meta property="og:description" content="nomad">
 <meta property="og:image" content="https://ojwatson.github.io/nomad/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -25,56 +25,71 @@
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
 </head>
-<body>
-    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
+<body data-spy="scroll" data-target="#toc">
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
-    
-    <a class="navbar-brand me-2" href="../index.html">nomad</a>
+    <div class="container template-article">
+      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <span class="navbar-brand">
+        <a class="navbar-link" href="../index.html">nomad</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+      </span>
+    </div>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
-
-    
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+<li>
+  <a href="../reference/index.html">Reference</a>
 </li>
-<li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/data.html">Data</a>
-    <a class="dropdown-item" href="../articles/introduction.html">Introduction</a>
-    <a class="dropdown-item" href="../articles/structure.html">Package Structure</a>
-  </div>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/data.html">Data</a>
+    </li>
+    <li>
+      <a href="../articles/introduction.html">Introduction</a>
+    </li>
+    <li>
+      <a href="../articles/model.html">Models</a>
+    </li>
+    <li>
+      <a href="../articles/structure.html">Package Structure</a>
+    </li>
+  </ul>
 </li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav"></ul>
+<ul class="nav navbar-nav navbar-right"></ul>
 </div>
-
-    
+<!--/.nav-collapse -->
   </div>
-</nav><div class="container template-article">
+<!--/.container -->
+</div>
+<!--/.navbar -->
 
+      
 
-
-
-<div class="row">
-  <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Package Structure</h1>
+      </header><div class="row">
+  <div class="col-md-9 contents">
+    <div class="page-header toc-ignore">
+      <h1 data-toc-skip>Package Structure</h1>
             
       
       
-      <div class="d-none name"><code>structure.Rmd</code></div>
+      <div class="hidden name"><code>structure.Rmd</code></div>
+
     </div>
 
     
@@ -84,10 +99,18 @@
 </h2>
 <p>This is an overall structure of the <code>nomad</code> package, which
 details the different components (models, underlying data, population
-hepers etc).</p>
+helpers etc).</p>
 <p>The package components are shown below:</p>
-<p><img src="imgs/structure.jpg" alt="nomad structure"> ### 1.
-Models</p>
+<p><img src="imgs/structure.jpg" alt="nomad structure"> The current
+features are detailed below with respect to specific development
+milestones:</p>
+</div>
+<div class="section level2">
+<h2 id="milestone-1">Milestone 1<a class="anchor" aria-label="anchor" href="#milestone-1"></a>
+</h2>
+<div class="section level3">
+<h3 id="models">1. Models<a class="anchor" aria-label="anchor" href="#models"></a>
+</h3>
 <p>The main workhorse is an <code>R6</code> mobility model class. This
 class will store mobility models, which will include the same
 functionality of the <code>mobility</code> model (prediction to new
@@ -105,6 +128,7 @@ own research need. To help users identify the best model for their
 needs, <code>nomad</code> also maintains a data catalogue of the
 different mobility data sets that have been used in producing the
 <code>mobility</code> models available in nomad.</p>
+</div>
 <div class="section level3">
 <h3 id="data-catalogue">2. Data Catalogue<a class="anchor" aria-label="anchor" href="#data-catalogue"></a>
 </h3>
@@ -113,8 +137,8 @@ yet) for storing meta data about each mobility data set that has been
 used to create mobility models. The meta data (mobility data survey
 size, sampling scheme, respondent characteristics, location, associated
 publication, date of survey, description of data censoring or
-aggregation, etc) will help guide users to understand which data source
-seems most suitable for their use case.</p>
+aggregation, spatial resolution etc) will help guide users to understand
+which data source seems most suitable for their use case.</p>
 <p>For example, end users may want to choose mobility models that have
 been fit using data from the same country as their analysis, or may want
 to select based on mobility data type (flight data, travel surveys etc).
@@ -123,7 +147,7 @@ query and visualise mobility data:</p>
 <ol style="list-style-type: decimal">
 <li>Maps of data locations</li>
 <li>Visualisations of survey sizes</li>
-<li>…</li>
+<li>Querying spatial scale of surveys, e.g. admin level</li>
 </ol>
 <p>Once users have identified suitable data sets, they can identify the
 associated model objects for fits to these data sets.</p>
@@ -150,12 +174,38 @@ with <code>nomad</code> either by submitting new PRs, or by converting
 their mobility model into one that can leverage <code>nomad</code>
 functionality.</p>
 </div>
-<div class="section level3">
-<h3 id="extensions-milestone-2">4. Extensions (Milestone 2)<a class="anchor" aria-label="anchor" href="#extensions-milestone-2"></a>
-</h3>
+</div>
+<div class="section level2">
+<h2 id="milestone-2">Milestone 2<a class="anchor" aria-label="anchor" href="#milestone-2"></a>
+</h2>
 <ol style="list-style-type: decimal">
-<li>Tool for creating ensemble mobility models (predicting from multiple
-models with appropriate weights based on user needs)</li>
+<li>Inclusion of additional models for each data set and way for users
+to query the model fit summary statistics to identify alternative models
+for the same data.</li>
+<li>Warnings when users provide lat/long or shapes that cross
+international borders as there are no data sets currently that are
+suitable for modelling international mobility.</li>
+<li>Warning when users provide lat/long or shapes that are below the
+spatial resolution of the data set used to fit the model, e.g. lat/long
+is for villages inside an admin 2, but the data only had one data point
+per admin 2 unit.</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="milestone-3">Milestone 3<a class="anchor" aria-label="anchor" href="#milestone-3"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Uncertainty visualisation. From 100 stochastic draws, generate range
+of metrics to describe each matrix and visualise the upper/lower
+matrices based on the different metrics.</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="milestone-4">Milestone 4<a class="anchor" aria-label="anchor" href="#milestone-4"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Tool for creating simple ensemble mobility models (predicting from
+multiple models with appropriate weights based on user needs)</li>
 <li>Interactive tool for demonstrating the difference between model
 predictions and linking this to an ensemble (widget slider for different
 weights)</li>
@@ -163,30 +213,42 @@ weights)</li>
 include simulating dummy infectious disease spatial model and then
 identifying the best model best on goodness of fit based on different
 mobility models, while fixing everything else.</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="extra">Extra<a class="anchor" aria-label="anchor" href="#extra"></a>
+</h2>
+<ol style="list-style-type: decimal">
 <li>PRs to <code>mobility</code> for custom model specification</li>
 </ol>
 </div>
+  </div>
+
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
-    </nav></aside>
+
 </div>
 
 
 
-    <footer><div class="pkgdown-footer-left">
+      <footer><div class="copyright">
   <p></p>
 <p>Developed by OJ Watson.</p>
 </div>
 
-<div class="pkgdown-footer-right">
+<div class="pkgdown">
   <p></p>
 <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
-    </footer>
+      </footer>
 </div>
 
   
+
 
   
 

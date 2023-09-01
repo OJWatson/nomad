@@ -16,6 +16,9 @@
     <loc>https://ojwatson.github.io/nomad/articles/introduction.html</loc>
   </url>
   <url>
+    <loc>https://ojwatson.github.io/nomad/articles/model.html</loc>
+  </url>
+  <url>
     <loc>https://ojwatson.github.io/nomad/articles/structure.html</loc>
   </url>
   <url>
@@ -25,12 +28,36 @@
     <loc>https://ojwatson.github.io/nomad/index.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/nomad/reference/R6_nomad_model.html</loc>
+    <loc>https://ojwatson.github.io/nomad/reference/check.html</loc>
   </url>
   <url>
     <loc>https://ojwatson.github.io/nomad/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/nomad/reference/zambia_cdr_2020_mod_dd_exp.html</loc>
+    <loc>https://ojwatson.github.io/nomad/reference/mobility_db.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/model_db.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/nomad_model.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/nomad_model_.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/nomad_remove_model_data.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/predict.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/print.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/residuals.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/summary.html</loc>
   </url>
 </urlset>
