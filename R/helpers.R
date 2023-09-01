@@ -1,5 +1,5 @@
 #' Clean print information on a mobility dataset
-#' @param data_name The model's name to link to [nomad::mobility_db]
+#' @noRd
 print_mobility_data <- function(data_name) {
 
   m <- which(nomad::mobility_db$name == data_name)
