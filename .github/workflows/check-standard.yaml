@@ -46,19 +46,27 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y jags
 
-      - name: Install JAGS (windows-latest)
-        if: runner.os == 'Windows'
-        run: |
-          curl.exe -o wjags.exe --url https://deac-fra.dl.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.2.0-Rtools33.exe
-          wjags.exe /S
-          del wjags.exe
-        shell: cmd
-
       - name: Install JAGS (macOS-latest)
         if: runner.os == 'macOS'
         run : |
-          rm '/usr/local/bin/gfortran'
           brew install jags
+
+# Windows jags code from https://github.com/ropensci/jagstargets/actions/runs/4135319301/workflow
+      - name: Install most Windows system dependencies
+        if: runner.os == 'Windows'
+        run: |
+          pacman -Syu mingw-w64-x86_64-make --noconfirm
+          g++ --version
+          Get-Command g++ | Select-Object -ExpandProperty Definition
+          mingw32-make --version
+          Get-Command mingw32-make | Select-Object -ExpandProperty Definition
+          (New-Object System.Net.WebClient).DownloadFile('https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.0.exe', 'C:\JAGS-4.3.0.exe')
+        shell: powershell
+
+      - name: Install JAGS (windows-latest)
+        if: runner.os == 'Windows'
+        run: C:\JAGS-4.3.0.exe /S
+        shell: cmd
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
