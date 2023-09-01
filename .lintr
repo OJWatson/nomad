@@ -5,4 +5,4 @@ linters: linters_with_defaults(
     cyclocomp_linter = NULL,
     line_length_linter=line_length_linter(100)
     )
-exclusions: list("tests/testthat.R", "R/cpp11.R", "vignettes")
+exclusions: list("tests/testthat.R", "R/cpp11.R", "vignettes", "data-raw")
