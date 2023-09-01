@@ -15,9 +15,10 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-remotes::install_github("OJWatson/nomad")
+# remotes::install_github("OJWatson/nomad")
 library(nomad)
 ```
 
 ## 1. Displaying Available Models
 
+All available models and underlying data are available to view at: `vignette("Models")`
