@@ -9,16 +9,16 @@ A \code{\link[tibble:tibble]{tibble::tibble()}} of mobility metadata with 10 var
 
 \code{mobility_db}:
 \itemize{
-\item{\code{name}: }{"Name of mobility data"}
-\item{\code{country}: }{"ISO3C country code for where data was collected"}
-\item{\code{date_start}: }{"Start date of data collection"}
-\item{\code{date_end}: }{"End date of data collection"}
-\item{\code{n}: }{"Number of data records"}
-\item{\code{type}: }{"Type of mobility data, e.g. call data records, facebook"}
-\item{\code{sampling_scheme}: }{"Free text description of sample scheme"}
-\item{\code{censoring}: }{"Free text description of any censoring"}
-\item{\code{aggregation}: }{"Spatial scale of aggregation, e.g. admin_2"}
-\item{\code{url}: }{"URL for associated publication or raw data"}
+\item{\code{name}:  }{Name of mobility data}
+\item{\code{country}:  }{ISO3C country code for where data was collected}
+\item{\code{date_start}:  }{Start date of data collection}
+\item{\code{date_end}:  }{End date of data collection}
+\item{\code{n}:  }{Number of data records}
+\item{\code{type}: }{Type of mobility data, e.g. call data records, facebook}
+\item{\code{sampling_scheme}:  }{Free text description of sample scheme}
+\item{\code{censoring}:  }{Free text description of any censoring}
+\item{\code{aggregation}:  }{Spatial scale of aggregation, e.g. admin_2}
+\item{\code{url}:  }{URL for associated publication or raw data}
 }
 }
 \usage{

@@ -15,12 +15,12 @@
 #'
 #'  \code{zmb_cdr_2020_mod_dd_exp}:
 #'    \itemize{
-#'      \item{`zmb`: }{"ISO3C county code for where data was collected"}
-#'      \item{`cdr`: }{"Type of mobility data. cdr = Call Data Record"}
-#'      \item{`2020`: }{"Year of data collection"}
-#'      \item{`mod`: }{"mod signifies the following labels relate to the model"}
-#'      \item{`dd`: }{"Which mobility model. dd = Departure-Diffusion"}
-#'      \item{`exp`: }{"Sub-Type of mobility model. exp = Exponential"}
+#'      \item{`zmb`:  }{ISO3C county code for where data was collected}
+#'      \item{`cdr`:  }{Type of mobility data. cdr = Call Data Record}
+#'      \item{`2020`:  }{Year of data collection}
+#'      \item{`mod`:  }{mod signifies the following labels relate to the model}
+#'      \item{`dd`:  }{Which mobility model. dd = Departure-Diffusion}
+#'      \item{`exp`:  }{Sub-Type of mobility model. exp = Exponential}
 #'      }
 #'
 #' The naming conventions help with documenting the models and enable linking
@@ -41,16 +41,16 @@
 #'
 #'  \code{mobility_db}:
 #'    \itemize{
-#'      \item{`name`: }{"Name of mobility data"}
-#'      \item{`country`: }{"ISO3C country code for where data was collected"}
-#'      \item{`date_start`: }{"Start date of data collection"}
-#'      \item{`date_end`: }{"End date of data collection"}
-#'      \item{`n`: }{"Number of data records"}
-#'      \item{`type`: }{"Type of mobility data, e.g. call data records, facebook"}
-#'      \item{`sampling_scheme`: }{"Free text description of sample scheme"}
-#'      \item{`censoring`: }{"Free text description of any censoring"}
-#'      \item{`aggregation`: }{"Spatial scale of aggregation, e.g. admin_2"}
-#'      \item{`url`: }{"URL for associated publication or raw data"}
+#'      \item{`name`:  }{Name of mobility data}
+#'      \item{`country`:  }{ISO3C country code for where data was collected}
+#'      \item{`date_start`:  }{Start date of data collection}
+#'      \item{`date_end`:  }{End date of data collection}
+#'      \item{`n`:  }{Number of data records}
+#'      \item{`type`: }{Type of mobility data, e.g. call data records, facebook}
+#'      \item{`sampling_scheme`:  }{Free text description of sample scheme}
+#'      \item{`censoring`:  }{Free text description of any censoring}
+#'      \item{`aggregation`:  }{Spatial scale of aggregation, e.g. admin_2}
+#'      \item{`url`:  }{URL for associated publication or raw data}
 #'      }
 #'
 #' @rdname mobility_db

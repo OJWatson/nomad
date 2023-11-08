@@ -14,12 +14,12 @@ that was fit.
 
 \code{zmb_cdr_2020_mod_dd_exp}:
 \itemize{
-\item{\code{zmb}: }{"ISO3C county code for where data was collected"}
-\item{\code{cdr}: }{"Type of mobility data. cdr = Call Data Record"}
-\item{\code{2020}: }{"Year of data collection"}
-\item{\code{mod}: }{"mod signifies the following labels relate to the model"}
-\item{\code{dd}: }{"Which mobility model. dd = Departure-Diffusion"}
-\item{\code{exp}: }{"Sub-Type of mobility model. exp = Exponential"}
+\item{\code{zmb}:  }{ISO3C county code for where data was collected}
+\item{\code{cdr}:  }{Type of mobility data. cdr = Call Data Record}
+\item{\code{2020}:  }{Year of data collection}
+\item{\code{mod}:  }{mod signifies the following labels relate to the model}
+\item{\code{dd}:  }{Which mobility model. dd = Departure-Diffusion}
+\item{\code{exp}:  }{Sub-Type of mobility model. exp = Exponential}
 }
 
 The naming conventions help with documenting the models and enable linking
