@@ -9,8 +9,6 @@ print(x, name, ...)
 \arguments{
 \item{x}{a \code{\link[=nomad_model]{nomad_model()}} object}
 
-\item{name}{Name of the model. Defaults to the name of object x}
-
 \item{...}{further arguments passed to or from other methods}
 }
 \description{

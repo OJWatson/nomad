@@ -34,14 +34,31 @@ model. Each model is named with a standard convention. For example, let's look a
 Each of the names in the model's snake_case name refer either to the data that
 the model was fit using or the type of model that was fit. For example:
 
-Name | Description
-------------- | -------------
-zmb | ISO3C county code for where data was collected
-cdr | Type of mobility data. cdr = Call Data Record
-2020 | Year of data collection
-mod | mod signifies the following labels relate to the model
-dd | Which mobility model. dd = Departure-Diffusion
-exp | Sub-Type of mobility model. exp = Exponential
+```{r, eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+tbl <- data.frame(
+  "Name" = c("zmb", "cdr", "2020", "mod", "dd", "exp"),
+  "Description" = c(
+    "ISO3C county code for where data was collected", 
+    "Type of mobility data. cdr = Call Data Record", 
+    "Year of data collection", 
+    "mod signifies the following labels relate to the model", 
+    "Which mobility model. dd = Departure-Diffusion", 
+    "Sub-Type of mobility model. exp = Exponential")
+)
+
+# produce our nice table
+reactable::reactable(
+  tbl,
+  
+  # Table Styling
+  resizable = TRUE, 
+  wrap = FALSE, 
+  highlight = TRUE,
+  
+  defaultColDef = reactable::colDef(minWidth = 80)
+)
+```
 
 The naming conventions help with documenting the models and enable linking
 to the mobility database to query further information about the underlying
@@ -59,18 +76,36 @@ are from similar populations, or conducted at similar spatial scales.
 
 The table provides the following information about the mobility datasets: 
 
-Name | Description
----- | -----------
-name | Name of mobility data
-country | ISO3C country code for where data was collected
-date_start | Start date of data collection
-date_end | End date of data collection
-n | Number of data records
-type | Type of mobility data, e.g. call data records, facebook
-sampling_scheme | Free text description of sample scheme
-censoring | Free text description of any censoring
-aggregation | Spatial scale of aggregation, e.g. admin_2
-url | URL for associated publication or raw data
+```{r, eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+tbl <- data.frame(
+  "Name" = c("name", "country", "date_start", "date_end", "n", 
+             "type", "sampling_scheme", "censoring", "aggregation", "url"),
+  "Description" = c(
+  "Name of mobility data",
+  "ISO3C country code for where data was collected",
+  "Start date of data collection",
+  "End date of data collection",
+  "Number of data records",
+  "Type of mobility data, e.g. call data records, facebook",
+  "Free text description of sample scheme",
+  "Free text description of any censoring",
+  "Spatial scale of aggregation, e.g. admin_2",
+  "URL for associated publication or raw data")
+)
+
+# produce our nice table
+reactable::reactable(
+  tbl,
+  
+  # Table Styling
+  resizable = TRUE, 
+  wrap = FALSE, 
+  highlight = TRUE,
+  
+  defaultColDef = reactable::colDef(minWidth = 80)
+)
+```
 
 The `name` of the mobility data matches the start of each mobility model's data. 
 

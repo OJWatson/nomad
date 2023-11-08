@@ -16,6 +16,7 @@ A nomad mobility model
 \item \href{#method-nomad_model-get_model}{\code{nomad_model_$get_model()}}
 \item \href{#method-nomad_model-get_data_name}{\code{nomad_model_$get_data_name()}}
 \item \href{#method-nomad_model-get_check_res}{\code{nomad_model_$get_check_res()}}
+\item \href{#method-nomad_model-get_model_name}{\code{nomad_model_$get_model_name()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -172,6 +173,19 @@ Get check results
 
 \subsection{Returns}{
 Data name
+Get the model's name
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-nomad_model-get_model_name"></a>}}
+\if{latex}{\out{\hypertarget{method-nomad_model-get_model_name}{}}}
+\subsection{Method \code{get_model_name()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$get_model_name()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Model name
 }
 }
 }

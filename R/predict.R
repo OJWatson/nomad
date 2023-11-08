@@ -94,8 +94,18 @@ check.nomad_model <- function(object, plots = TRUE, ...) {
     mobility::check(object$get_model(), plots, ...)
   } else {
     fp <- check_plot_file_path(object)
+    if(plots) {
     if(file.exists(fp)) {
-      # TODO: Plot fp
+
+      # Read in the image
+      img <- png::readPNG(fp)
+      rasterImage <- grid::rasterGrob(img, interpolate=TRUE)
+
+      # Plot the image
+      grid::grid.newpage()
+      grid::grid.draw(rasterImage)
+
+    }
     }
     object$get_check_res()
   }
@@ -178,15 +188,17 @@ residuals.nomad_model <- function(object, type = "deviance", ...) {
 #' This function provides a simple print overview of a `nomad_model` object.
 #'
 #' @param x a [nomad::nomad_model()] object
-#' @param name Name of the model. Defaults to the name of object x
 #' @param ... further arguments passed to or from other methods
 #' @export
 print <- function(x, name, ...) UseMethod('print')
 
 #' @export
-print.nomad_model <- function(x, name = deparse(substitute(x)), ...) {
+print.nomad_model <- function(x,  ...) {
 
   message("Nomad mobility model:\n")
+
+  # Get the name of the nomad model
+  name <- x$get_model_name()
 
   data_names <- gsub("(.*)(_mod.*)", "\\1", name)
   mobility_model <- vapply(strsplit(name, "_"), FUN.VALUE = character(1), "[[", 5)
@@ -202,6 +214,17 @@ print.nomad_model <- function(x, name = deparse(substitute(x)), ...) {
   ))
   message("\nMobility Data:\n")
 
-
   print_mobility_data(x$get_data_name())
 }
+
+#' @noRd
+model_types <- function(){
+
+  c(
+  "gravity" = "grav",
+  "radiation" = "rad",
+  "departure-diffusion" = "dd"
+)
+}
+
+

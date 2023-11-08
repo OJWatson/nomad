@@ -1,10 +1,14 @@
 ---
 title: "Models"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: false 
 vignette: >
   %\VignetteIndexEntry{Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+resource_files:
+  - model_imgs/
 ---
 
 ```{r, include = FALSE}
@@ -14,12 +18,24 @@ knitr::opts_chunk$set(
 )
 
 library(tidyverse)
+library(reactable)
 ```
 
 This vignette provides a description of the performance of each model in `nomad`.
 
-
 ## Model Performance
+
+The following table provides the description and overall evaluation statistics
+of each model that is stored in `nomad`. 
+
+You can search across all the models, e.g. by searching for models that were conducted
+in specific countries (queryable by ISO3C code), or by sorting the model table 
+with respect to desired model characteristics, e.g. lowest DIC. By default the 
+table is sorted by the $R^2$ of the model fit. 
+
+Alternatively, you could select for specific mobility models (`gravity`, 
+`radiation`, and `departure-diffusion`) or their sub types (see `?mobility::mobility`)
+for more information on sub-types.
 
 ```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
 
@@ -53,26 +69,206 @@ tbl <- left_join(
   cbind(modstat, mod_desc), 
   mob_db, by = "name") %>% 
   select(-name) %>% 
-  rename(name = model) %>% 
-  rename(model = mobility_model) %>% 
-  rename(type = model_type)
+  rename(Name = model) %>% 
+  rename(Model = mobility_model) %>% 
+  rename(Type = model_type) %>% 
+  rename(ISO3C = country) %>% 
+  rename(N = n) %>% 
+  rename(Data = data_type) %>% 
+  rename(Space = aggregation) %>% 
+  relocate(ISO3C, .after = Name) %>% 
+  relocate(Model, .after = ISO3C) %>% 
+  relocate(Type, .after = Model)
 
-# Present table
-DT::datatable(tbl, filter = "top") %>% 
-  DT::formatRound(c("DIC", "RMSE","MAPE","R2"), digits = 2)
 ```
-
-## Model Fit Checks
-
-TODO: Add here the model check plots to be sourced from data-ram
-
-## Mobility Data
-
-Table of the different mobility data sets used in creating `nomad` models.
 
 ```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
 
-nomad::mobility_db %>% 
-  DT::datatable(filter = "top")
+# produce our nice table
+reactable::reactable(
+  tbl,
+  
+  # Table Styling
+  resizable = TRUE, 
+  wrap = FALSE, 
+  bordered = TRUE,
+  highlight = TRUE,
+  
+  # Column Styling
+  columns = list(
+    Name = colDef(
+      sticky = "left",
+      minWidth = 200,
+      # Add a right border style to visually distinguish the sticky column
+      style = list(borderRight = "1px solid #000"),
+      headerStyle = list(borderRight = "1px solid #000")
+    ),
+    ISO3c = colDef(minWidth = 60),
+    Model = colDef(minWidth = 60),
+    Type = colDef(minWidth = 60),
+    DIC = colDef(cell = function(value){formatC(value, format = "e", digits = 2)}, minWidth = 80),
+    RMSE = colDef(cell = function(value){formatC(value, format = "e", digits = 2)}, minWidth = 80),
+    MAPE = colDef(cell = function(value){formatC(value, format = "e", digits = 2)}, minWidth = 80),
+    R2 = colDef(cell = function(value){formatC(value,  digits = 2)}, minWidth = 60),
+    N = colDef(minWidth = 100),
+    Data = colDef(minWidth = 100)
+  ), 
+  
+  # Extra
+  defaultSorted = list(R2 = "desc"), 
+  defaultColDef = colDef(minWidth = 80),
+  searchable = TRUE, 
+  showPageSizeOptions = TRUE,
+  pageSizeOptions = c(4, 8, 12),
+  defaultPageSize = 4
+)
 
+```
+
+
+## Model Fit Checks
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset",fig.dpi=300, fig.height=4, fig.width=8, include = FALSE}
+
+pl <- lapply(nomad::model_db, function(x){
+  ch_out <- nomad::check(x, plots = TRUE)
+  capture <- recordPlot()
+  return(capture)
+})
+names(pl) <- names(nomad::model_db)
+
+dir.create("model_imgs", showWarnings = FALSE)
+# Save each plot as an image file
+for (name in names(pl)) {
+  filename <- paste0("model_imgs/",name, ".png")
+  png(filename, width = 8, height = 4, units = "in", res = 300)
+  replayPlot(pl[[name]])
+  dev.off()
+}
+
+```
+
+```{js, echo = FALSE}
+function changePlot() {
+var plotName = document.getElementById("plotSelect").value;
+var imagePath = "model_imgs/" + plotName + ".png";
+document.getElementById("plotImage").src = imagePath;
+}
+```
+
+The overall summary statistics provided above may not be the most useful way to
+evaluate the model's overall fit. Alternatively, you can view the model fit
+summary plots below by selecting for the given plot name:
+
+<!-- Create our html selector -->
+<select id="plotSelect" onchange="changePlot()">
+<!-- Use R to generate options dynamically -->
+`r paste0("<option value='", names(pl), "'>", names(pl), "</option>", collapse = "\n")`
+</select>
+
+<!-- Initial image displayed -->
+<img id="plotImage" src="model_imgs/zmb_cdr_2020_mod_dd_exp.png" style="width:100%;"/>
+
+## Mobility Data
+
+The following table provides the description and overall summaries of the 
+different mobility data sets that have been used to create the mobility models
+stored in `nomad`. Users may wish to search for the data that they believe would
+be most representative for their use cases, e.g. collected from the same country, 
+or collected at the same spatial scale. 
+
+Sample scheme details, censoring as well as the timing of the sample can all be 
+viewed below.
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+# produce our nice table
+db_tbl <- nomad::mobility_db %>% 
+  rename(Name = name) %>% 
+  rename(Data = type) %>% 
+  rename(ISO3C = country) %>% 
+  rename(N = n) %>% 
+  rename(Scheme = sampling_scheme) %>% 
+  rename(Censoring = censoring) %>% 
+  rename(Space = aggregation) %>% 
+  rename(URL = publication) %>% 
+  rename(Start = date_start) %>% 
+  rename(End = date_end)
+
+```
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+reactable::reactable(
+  db_tbl,
+  
+  # Table Styling
+  resizable = TRUE, 
+  wrap = FALSE, 
+  bordered = TRUE,
+  highlight = TRUE,
+  
+  # Column Styling
+  columns = list(
+    Name = colDef(
+      sticky = "left",
+      minWidth = 140,
+      # Add a right border style to visually distinguish the sticky column
+      style = list(borderRight = "1px solid #000"),
+      headerStyle = list(borderRight = "1px solid #000")
+    ),
+    ISO3c = colDef(minWidth = 60),
+    Type = colDef(minWidth = 60),
+    N = colDef(minWidth = 100),
+    Data = colDef(minWidth = 100),
+    Start = colDef(minWidth = 100),
+    End = colDef(minWidth = 100),
+    Scheme = colDef(details = function(index) {
+      if(!is.na(db_tbl[index, "Scheme"])){
+        paste("Scheme: ", db_tbl[index, "Scheme"])
+      }
+    }),
+    Censoring = colDef(details = function(index) {
+      if(!is.na(db_tbl[index, "Censoring"])){
+        paste("Censoring: ", db_tbl[index, "Censoring"])
+      }
+    }, minWidth = 80),
+    URL =  colDef(cell = function(value, index) {
+      if(!is.na(value)) {
+        htmltools::tags$a(href = value, target = "_blank", as.character(value))
+      }
+    })
+  ), 
+  
+  # Extra
+  defaultSorted = list(Start = "desc"), 
+  defaultColDef = colDef(minWidth = 70),
+  searchable = TRUE, 
+  showPageSizeOptions = TRUE,
+  pageSizeOptions = c(4, 8, 12),
+  defaultPageSize = 8,
+  
+  # Expandable
+  details = colDef(
+    name = "More",
+    details = JS("function(rowInfo) {
+return `Details for row: ${rowInfo.index}` +
+`<pre>${JSON.stringify(rowInfo.values, null, 2)}</pre>`
+}"),
+html = TRUE,
+width = 60
+  )
+
+
+)
+
+```
+
+```{css, echo=FALSE}
+#pkgdown-sidebar {
+display: none;
+}
+.col-md-9 {
+width: 100% !important;
+}
 ```

@@ -130,7 +130,18 @@ nomad_model_ <- R6::R6Class(
 
     #' Get check results
     #' @return Data name
-    get_check_res = function() private$check_res
+    get_check_res = function() private$check_res,
+
+    #' Get the model's name
+    #' @return Model name
+    get_model_name = function() {
+      # Get the name of the nomad model
+      mod <- model_types()[match(x$get_model()$model, names(model_types()))]
+      name <- paste(x$get_data_name(), "mod",
+                    as.character(mod), x$get_model()$type,
+                    sep = "_")
+      return(name)
+    }
 
   ),
 
