@@ -22,7 +22,8 @@ Suggests:
     testthat,
     remotes,
     DT,
-    tidyverse
+    tidyverse, 
+    reactable
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
 Depends: 
