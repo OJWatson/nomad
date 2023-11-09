@@ -190,7 +190,7 @@ residuals.nomad_model <- function(object, type = "deviance", ...) {
 #' @param x a [nomad::nomad_model()] object
 #' @param ... further arguments passed to or from other methods
 #' @export
-print <- function(x, name, ...) UseMethod('print')
+print <- function(x, ...) UseMethod('print')
 
 #' @export
 print.nomad_model <- function(x,  ...) {

@@ -23,7 +23,8 @@ Suggests:
     remotes,
     DT,
     tidyverse, 
-    reactable
+    reactable,
+    htmltools
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
 Depends: 

@@ -4,7 +4,7 @@
 \alias{print}
 \title{Print 'nomad_model' class}
 \usage{
-print(x, name, ...)
+print(x, ...)
 }
 \arguments{
 \item{x}{a \code{\link[=nomad_model]{nomad_model()}} object}
