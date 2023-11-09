@@ -81,7 +81,8 @@
 
       
 
-      </header><div class="row">
+      </header><script src="data_files/core-js-2.5.3/shim.min.js"></script><script src="data_files/react-18.2.0/react.min.js"></script><script src="data_files/react-18.2.0/react-dom.min.js"></script><script src="data_files/reactwidget-1.0.0/react-tools.js"></script><script src="data_files/htmlwidgets-1.6.2/htmlwidgets.js"></script><link href="data_files/reactable-0.4.4/reactable.css" rel="stylesheet">
+<script src="data_files/reactable-binding-0.4.4/reactable.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Data</h1>
@@ -115,39 +116,8 @@ For example, let’s look at <code>zmb_cdr_2020_mod_dd_exp</code>.</p>
 <p>Each of the names in the model’s snake_case name refer either to the
 data that the model was fit using or the type of model that was fit. For
 example:</p>
-<table class="table">
-<thead><tr class="header">
-<th>Name</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>zmb</td>
-<td>ISO3C county code for where data was collected</td>
-</tr>
-<tr class="even">
-<td>cdr</td>
-<td>Type of mobility data. cdr = Call Data Record</td>
-</tr>
-<tr class="odd">
-<td>2020</td>
-<td>Year of data collection</td>
-</tr>
-<tr class="even">
-<td>mod</td>
-<td>mod signifies the following labels relate to the model</td>
-</tr>
-<tr class="odd">
-<td>dd</td>
-<td>Which mobility model. dd = Departure-Diffusion</td>
-</tr>
-<tr class="even">
-<td>exp</td>
-<td>Sub-Type of mobility model. exp = Exponential</td>
-</tr>
-</tbody>
-</table>
-<p>The naming conventions help with documenting the models and enable
+<div class="reactable html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-0edb3f4b3170e614d9bb" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0edb3f4b3170e614d9bb">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Name":["zmb","cdr","2020","mod","dd","exp"],"Description":["ISO3C county code for where data was collected","Type of mobility data. cdr = Call Data Record","Year of data collection","mod signifies the following labels relate to the model","Which mobility model. dd = Departure-Diffusion","Sub-Type of mobility model. exp = Exponential"]},"columns":[{"id":"Name","name":"Name","type":"character","minWidth":80},{"id":"Description","name":"Description","type":"character","minWidth":80}],"resizable":true,"highlight":true,"nowrap":true,"dataKey":"4099d347444d651ded523a32efb9b8df"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><p>The naming conventions help with documenting the models and enable
 linking to the mobility database to query further information about the
 underlying mobility data each model was fit using. All names in the
 snake case model name before <code>mod</code> refer to the mobility
@@ -165,55 +135,8 @@ research purposes. For example, searching for data sets that are from
 similar populations, or conducted at similar spatial scales.</p>
 <p>The table provides the following information about the mobility
 datasets:</p>
-<table class="table">
-<thead><tr class="header">
-<th>Name</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>name</td>
-<td>Name of mobility data</td>
-</tr>
-<tr class="even">
-<td>country</td>
-<td>ISO3C country code for where data was collected</td>
-</tr>
-<tr class="odd">
-<td>date_start</td>
-<td>Start date of data collection</td>
-</tr>
-<tr class="even">
-<td>date_end</td>
-<td>End date of data collection</td>
-</tr>
-<tr class="odd">
-<td>n</td>
-<td>Number of data records</td>
-</tr>
-<tr class="even">
-<td>type</td>
-<td>Type of mobility data, e.g. call data records, facebook</td>
-</tr>
-<tr class="odd">
-<td>sampling_scheme</td>
-<td>Free text description of sample scheme</td>
-</tr>
-<tr class="even">
-<td>censoring</td>
-<td>Free text description of any censoring</td>
-</tr>
-<tr class="odd">
-<td>aggregation</td>
-<td>Spatial scale of aggregation, e.g. admin_2</td>
-</tr>
-<tr class="even">
-<td>url</td>
-<td>URL for associated publication or raw data</td>
-</tr>
-</tbody>
-</table>
-<p>The <code>name</code> of the mobility data matches the start of each
+<div class="reactable html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-23042f92d69def6349a9" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-23042f92d69def6349a9">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Name":["name","country","date_start","date_end","n","type","sampling_scheme","censoring","aggregation","url"],"Description":["Name of mobility data","ISO3C country code for where data was collected","Start date of data collection","End date of data collection","Number of data records","Type of mobility data, e.g. call data records, facebook","Free text description of sample scheme","Free text description of any censoring","Spatial scale of aggregation, e.g. admin_2","URL for associated publication or raw data"]},"columns":[{"id":"Name","name":"Name","type":"character","minWidth":80},{"id":"Description","name":"Description","type":"character","minWidth":80}],"resizable":true,"highlight":true,"nowrap":true,"dataKey":"7381311b0efd1cb0c10cde42211ab728"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><p>The <code>name</code> of the mobility data matches the start of each
 mobility model’s data.</p>
 </div>
 </div>
@@ -302,7 +225,7 @@ directory.</li>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add to the model database</span></span>
-<span><span class="va">model_db</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">:::</span><span class="fu">add_model_to_db</span><span class="op">(</span><span class="va">zmb_cdr_2020_mod_dd_exp</span><span class="op">)</span></span>
+<span><span class="va">model_db</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">:::</span><span class="fu"><a href="../reference/add_model_to_db.html">add_model_to_db</a></span><span class="op">(</span><span class="va">zmb_cdr_2020_mod_dd_exp</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Update the package model database</span></span>
 <span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_data</span><span class="op">(</span><span class="va">model_db</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
