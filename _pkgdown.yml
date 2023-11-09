@@ -23,3 +23,7 @@ reference:
 - contents:
   - mobility_db
   - model_db
+- title: "Database Management"
+  desc: "Functions to ease adding to internal Data Objects"
+- contents:
+  - add_model_to_db
