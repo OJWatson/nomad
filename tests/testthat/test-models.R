@@ -15,8 +15,6 @@ test_that("model creation work", {
   # Add to the model database
   model_db <- nomad:::add_model_to_db(zmb_cdr_2020_mod_dd_exp)
 
-  # Update the package model database
-  # usethis::use_data(model_db, overwrite = TRUE)
 
 })
 

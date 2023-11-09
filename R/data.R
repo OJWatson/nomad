@@ -58,4 +58,3 @@
 #'
 #'
 "mobility_db"
-

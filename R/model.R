@@ -89,9 +89,9 @@ nomad_model_ <- R6::R6Class(
                                  save_model_checks = FALSE, ...) {
 
       # save these for use later if needed
-      if(save_model_checks) {
+      if (save_model_checks) {
 
-      # First save the model check statistics for recall later
+        # First save the model check statistics for recall later
         png(...)
         private$check_res <- check(self, plots = TRUE)
         dev.off()
@@ -190,22 +190,22 @@ nomad_model <- function(model, data_name) {
 #' @param ... further arguments passed to [png()] for saving model check plot
 #' @export
 nomad_remove_model_data <- function(model,
-                              M = FALSE,
-                              D = FALSE,
-                              N_orig = FALSE,
-                              N_dest = FALSE,
-                              save_model_checks = FALSE,
-                              ...) {
+                                    M = FALSE,
+                                    D = FALSE,
+                                    N_orig = FALSE,
+                                    N_dest = FALSE,
+                                    save_model_checks = FALSE,
+                                    ...) {
 
   # remove from internal model as requested
   model <- model$remove_model_data(
-      M = M,
-      D = D,
-      N_orig = N_orig,
-      N_dest = N_dest,
-      save_model_checks = save_model_checks,
-      ...
-    )
+    M = M,
+    D = D,
+    N_orig = N_orig,
+    N_dest = N_dest,
+    save_model_checks = save_model_checks,
+    ...
+  )
 
   return(model)
 }
@@ -218,4 +218,3 @@ check_plot_file_path <- function(model) {
     package = "nomad"
   )
 }
-
