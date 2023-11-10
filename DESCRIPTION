@@ -39,4 +39,5 @@ Imports:
     png,
     R6
 Remotes:
-    COVID-19-Mobility-Data-Network/mobility  
+    COVID-19-Mobility-Data-Network/mobility,
+    ropensci/rnaturalearthhires  
