@@ -35,10 +35,14 @@ Depends:
 RoxygenNote: 7.2.3
 Imports: 
     crayon,
+    dplyr,
     grid,
+    methods,
     mobility (>= 0.6.5),
     png,
-    R6
+    R6,
+    terra,
+    tibble
 Remotes:
     COVID-19-Mobility-Data-Network/mobility,
     ropensci/rnaturalearthhires  
