@@ -13,11 +13,11 @@ reference:
 - title: "Modeling and simulation"
   desc: "Predicting from, summarizing, and checking mobility model objects"
 - contents:
-  - print
-  - summary
+  - print.nomad_model
+  - summary.nomad_model
+  - predict.nomad_model
+  - residuals.nomad_model
   - check
-  - predict
-  - residuals
 - title: "Data Objects"
   desc: "Mobility database and Mobility Models database"
 - contents:
@@ -27,7 +27,10 @@ reference:
   desc: "Functions to ease adding to internal Data Objects"
 - contents:
   - add_model_to_db
+  - rebuild_model_db
+  - remake_model_in_db
 - title: "Population Helpers"
   desc: "Functions to fetch population sizes"
+- contents:
   - get_pop
   - unpack_pop
