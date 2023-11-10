@@ -31,18 +31,23 @@ Suggests:
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
 Depends: 
-    R (>= 2.10)
+    R (>= 3.50)
 RoxygenNote: 7.2.3
 Imports: 
     crayon,
     dplyr,
     grid,
+    jsonlite,
+    magrittr,
     methods,
     mobility (>= 0.6.5),
     png,
     R6,
+    rlang,
+    sf,
     terra,
-    tibble
+    tibble,
+    usethis
 Remotes:
     COVID-19-Mobility-Data-Network/mobility,
     ropensci/rnaturalearthhires  

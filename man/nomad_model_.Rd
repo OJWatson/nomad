@@ -16,6 +16,7 @@ A nomad mobility model
 \item \href{#method-nomad_model-get_model}{\code{nomad_model_$get_model()}}
 \item \href{#method-nomad_model-get_data_name}{\code{nomad_model_$get_data_name()}}
 \item \href{#method-nomad_model-get_check_res}{\code{nomad_model_$get_check_res()}}
+\item \href{#method-nomad_model-set_check_res}{\code{nomad_model_$set_check_res()}}
 \item \href{#method-nomad_model-get_model_name}{\code{nomad_model_$get_model_name()}}
 }
 }
@@ -172,8 +173,25 @@ Get check results
 }
 
 \subsection{Returns}{
-Data name
-Get the model's name
+Results of model check
+Set check results
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-nomad_model-set_check_res"></a>}}
+\if{latex}{\out{\hypertarget{method-nomad_model-set_check_res}{}}}
+\subsection{Method \code{set_check_res()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$set_check_res(check_res)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{check_res}}{Results of model check
+Get the model's name}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}

@@ -27,3 +27,7 @@ reference:
   desc: "Functions to ease adding to internal Data Objects"
 - contents:
   - add_model_to_db
+- title: "Population Helpers"
+  desc: "Functions to fetch population sizes"
+  - get_pop
+  - unpack_pop

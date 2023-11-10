@@ -27,6 +27,7 @@ Most users will come to use `nomad` with a shape file for which they
 want mobility predictions.
 
 ``` r
+library(tidyverse)
 # Get our shape object. Here let's use the MAP Zambia Admin 2
 zmbsf <- malariaAtlas::getShp(ISO = "ZMB", admin_level = c("admin2")) %>% 
   sf::st_as_sf()
@@ -35,21 +36,25 @@ zmbsf <- malariaAtlas::getShp(ISO = "ZMB", admin_level = c("admin2")) %>%
 For our given shape file, we need to fetch population sizes, which
 `nomad` makes easy by wrapping WorldPop
 
-    # Use the inbuilt population fetch functions in nomad
-    pop <- nomad::get_pop("ZMB", 2020)
+``` r
+# Use the inbuilt population fetch functions in nomad
+pop <- nomad::get_pop("ZMB", 2020)
+```
 
 Next we need to unpack this to create population sizes for our regions
 
-    # And unpack the population based on our shape file
-    pop_extract <- nomad::unpack_pop(zmbsf, pop)
+``` r
+# And unpack the population based on our shape file
+pop_extract <- nomad::unpack_pop(zmbsf, pop)
 
-    # Calculate our population per region
-    sum <- pop_extract %>%
-      dplyr::select(iso, name_2, pop) %>%
-      tidyr::unnest(cols = c(pop)) %>%
-      tidyr::drop_na() %>%
-      group_by(name_2) %>% 
-      dplyr::summarise(pop = round(sum(pop)))
+# Calculate our population per region
+sum <- pop_extract %>%
+  dplyr::select(iso, name_2, pop) %>%
+  tidyr::unnest(cols = c(pop)) %>%
+  tidyr::drop_na() %>%
+  group_by(name_2) %>% 
+  dplyr::summarise(pop = round(sum(pop)))
+```
 
 From here we can create the distance matrix and the population sizes
 
@@ -83,24 +88,24 @@ ggplot(data=reshape2::melt(M_hat)) +
                 y=factor(origin),
                 fill=log(value))) +
   xlab('Destination') + ylab("Origin") +
-  theme_bw() + theme(axis.text.x=element_text(size=10),
-                     axis.text.y=element_text(size=10),
-                     axis.title.x=element_text(size=12, margin = margin(t = 15)),
-                     axis.title.y=element_text(size=12, margin = margin(r = 15)),
+  theme_bw() + theme(axis.text.x=element_text(size=8),
+                     axis.text.y=element_text(size=8),
+                     axis.title.x=element_text(size=10, margin = margin(t = 15)),
+                     axis.title.y=element_text(size=10, margin = margin(r = 15)),
                      legend.position='bottom') +
   viridis::scale_fill_viridis(option='inferno', 
                               direction=1) +
   guides(fill=guide_colorbar(title='log(Estimated number of trips)',
                              title.position='top',
                              label.theme=element_text(size=9),
-                             barwidth=20,s
+                             barwidth=20,
                              barheight=0.5,
                              frame.colour='black',
                              ticks=TRUE)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
 
-![Predictions](vignettes/imgs/predictions.png)
+![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
 
 #### Licenses
 

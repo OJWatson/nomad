@@ -33,7 +33,7 @@ test_that("model summaries etc work", {
   expect_true(all(names(check_out) == c("DIC", "RMSE", "MAPE", "R2")))
 
   # check print produces
-  expect_message(print(mod))
+  expect_output(print(mod))
 
   # check summary
   summod <- summary(mod)

@@ -46,7 +46,7 @@ nmd_model <- nomad::model_db$zmb_fb_2020_mod_grav_exp
 
 # Model check statistics are still available as these are
 # saved when model data is removed from object
-nomad::residuals(nmd_model)
+nomad::check(nmd_model)
 }
 \seealso{
 Other model: 

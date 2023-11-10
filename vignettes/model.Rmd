@@ -1,5 +1,5 @@
 ---
-title: "Models"
+title: "Models and Mobility Data"
 output: 
   rmarkdown::html_vignette:
     toc: false 
@@ -21,21 +21,176 @@ library(tidyverse)
 library(reactable)
 ```
 
-This vignette provides a description of the performance of each model in `nomad`.
+This vignette provides a description of the performance of each model in `nomad`
+and the mobility data that underpins those models. This vignette provides all
+the information required to help you identify the most suitable model for your
+needs.
+
+## Mobility Data
+
+The following table provides the description and overall summaries of the 
+different mobility data sets that have been used to create the mobility models
+stored in `nomad`. Users may wish to search for the data that they believe would
+be most representative for their use cases, e.g. collected from the same country, 
+or collected at the same spatial scale. 
+
+Sample scheme details, censoring as well as the timing of the sample can all be 
+viewed below.
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+# produce our nice table
+db_tbl <- nomad:::rename_mobility_db()
+
+```
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+reactable::reactable(
+  db_tbl,
+  
+  # Table Styling
+  resizable = TRUE, 
+  wrap = FALSE, 
+  bordered = TRUE,
+  highlight = TRUE,
+  
+  # Column Styling
+  columns = list(
+    Name = colDef(
+      sticky = "left",
+      minWidth = 140,
+      # Add a right border style to visually distinguish the sticky column
+      style = list(borderRight = "1px solid #000"),
+      headerStyle = list(borderRight = "1px solid #000")
+    ),
+    ISO3c = colDef(minWidth = 60),
+    Type = colDef(minWidth = 60),
+    N = colDef(minWidth = 100),
+    Data = colDef(minWidth = 100),
+    Start = colDef(minWidth = 100),
+    End = colDef(minWidth = 100),
+    Scheme = colDef(details = function(index) {
+      if(!is.na(db_tbl[index, "Scheme"])){
+        paste("Scheme: ", db_tbl[index, "Scheme"])
+      }
+    }),
+    Censoring = colDef(details = function(index) {
+      if(!is.na(db_tbl[index, "Censoring"])){
+        paste("Censoring: ", db_tbl[index, "Censoring"])
+      }
+    }, minWidth = 80),
+    URL =  colDef(cell = function(value, index) {
+      if(!is.na(value)) {
+        htmltools::tags$a(href = value, target = "_blank", as.character(value))
+      }
+    })
+  ), 
+  
+  # Extra
+  defaultSorted = list(Start = "desc"), 
+  defaultColDef = colDef(minWidth = 70),
+  searchable = TRUE, 
+  showPageSizeOptions = TRUE,
+  pageSizeOptions = c(4, 8, 12),
+  defaultPageSize = 8,
+  
+  # Expandable
+  details = colDef(
+    name = "More",
+    details = JS("function(rowInfo) {
+return `Details for row: ${rowInfo.index}` +
+`<pre>${JSON.stringify(rowInfo.values, null, 2)}</pre>`
+}"),
+html = TRUE,
+width = 60
+  )
+
+
+)
+
+```
+
+To help identify which mobility data may be most suitable for your use case, we
+have provided the following interactive map to show you the locations of all 
+available mobility data:
+
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+
+world <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf") %>% 
+  mutate(ISO3C = iso_a3)
+
+merged_data <- world %>% 
+  left_join(db_tbl, by = c("ISO3C" = "ISO3C"))
+
+mytext <- paste(
+  "Name: ", merged_data$Name,"<br/>", 
+  "Country: ", merged_data$ISO3C,"<br/>", 
+  "Start Date: ", merged_data$Start,"<br/>", 
+  "End Date: ", merged_data$End,"<br/>", 
+  "Sample Size: ", format(merged_data$N,big.mark = ","),"<br/>", 
+  "Data: ", merged_data$Data,"<br/>", 
+  "Scheme: ", merged_data$Scheme,"<br/>", 
+  "Space: ", merged_data$Space,"<br/>", 
+  "URL: ", sprintf('<a href="%s" target="_blank">%s</a>', merged_data$URL, merged_data$URL), 
+  sep="") %>%
+  lapply(htmltools::HTML)
+
+
+merged_data <- merged_data %>% mutate(logN = log10(N))
+N_palette <- leaflet::colorBin( palette="YlOrBr", 
+                                domain=c(0, max(merged_data$logN,na.rm = TRUE)), na.color="transparent")
+
+leaflet::leaflet(merged_data) %>%
+  leaflet::addTiles() %>%
+  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "call data record"),
+                       fillColor = ~N_palette(logN),
+                       color = "#BDBDC3",
+                       stroke = FALSE,
+                       weight = 0,
+                       opacity = 1,
+                       fillOpacity = 0.8,
+                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
+                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "call data record")], 
+                       group = "Call Data Records") %>%
+  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "facebook"),
+                       fillColor = ~N_palette(logN),
+                       color = "#BDBDC3",
+                       stroke = FALSE,
+                       weight = 0,
+                       opacity = 1,
+                       fillOpacity = 0.8,
+                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
+                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "facebook")], 
+                       group = "Facebook Data") %>%
+  leaflet::addLegend( pal=N_palette, 
+                      values=~logN, 
+                      opacity=0.9,
+                      title = "Sample Size:", 
+                      position = "bottomleft", 
+                      labFormat = leaflet::labelFormat(prefix = "10^", between = " - 10^", transform = function(x){(x)})
+                      ) %>% 
+  # Layers control
+  leaflet::addLayersControl(
+    baseGroups = c("Call Data Records", "Facebook"),
+    options = leaflet::layersControlOptions(collapsed = FALSE,)
+  )
+
+```
 
 ## Model Performance
 
 The following table provides the description and overall evaluation statistics
 of each model that is stored in `nomad`. 
 
-You can search across all the models, e.g. by searching for models that were conducted
-in specific countries (queryable by ISO3C code), or by sorting the model table 
-with respect to desired model characteristics, e.g. lowest DIC. By default the 
-table is sorted by the $R^2$ of the model fit. 
+You can search across all the models, e.g. by searching for models that used
+the mobility data that you have identified as most suitable for your setting,
+or by sorting the model table with respect to desired model characteristics, 
+e.g. lowest DIC. By default the table is sorted by the $R^2$ of the model fit. 
 
 Alternatively, you could select for specific mobility models (`gravity`, 
-`radiation`, and `departure-diffusion`) or their sub types (see `?mobility::mobility`)
-for more information on sub-types.
+`radiation`, and `departure-diffusion`) or their 
+sub types (see `?mobility::mobility`) for more information on sub-types.
 
 ```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
 
@@ -169,157 +324,7 @@ summary plots below by selecting for the given plot name:
 <!-- Initial image displayed -->
 <img id="plotImage" src="model_imgs/zmb_cdr_2020_mod_dd_exp.png" style="width:100%;"/>
 
-## Mobility Data
 
-The following table provides the description and overall summaries of the 
-different mobility data sets that have been used to create the mobility models
-stored in `nomad`. Users may wish to search for the data that they believe would
-be most representative for their use cases, e.g. collected from the same country, 
-or collected at the same spatial scale. 
-
-Sample scheme details, censoring as well as the timing of the sample can all be 
-viewed below.
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
-
-# produce our nice table
-db_tbl <- nomad:::rename_mobility_db()
-
-```
-
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
-
-reactable::reactable(
-  db_tbl,
-  
-  # Table Styling
-  resizable = TRUE, 
-  wrap = FALSE, 
-  bordered = TRUE,
-  highlight = TRUE,
-  
-  # Column Styling
-  columns = list(
-    Name = colDef(
-      sticky = "left",
-      minWidth = 140,
-      # Add a right border style to visually distinguish the sticky column
-      style = list(borderRight = "1px solid #000"),
-      headerStyle = list(borderRight = "1px solid #000")
-    ),
-    ISO3c = colDef(minWidth = 60),
-    Type = colDef(minWidth = 60),
-    N = colDef(minWidth = 100),
-    Data = colDef(minWidth = 100),
-    Start = colDef(minWidth = 100),
-    End = colDef(minWidth = 100),
-    Scheme = colDef(details = function(index) {
-      if(!is.na(db_tbl[index, "Scheme"])){
-        paste("Scheme: ", db_tbl[index, "Scheme"])
-      }
-    }),
-    Censoring = colDef(details = function(index) {
-      if(!is.na(db_tbl[index, "Censoring"])){
-        paste("Censoring: ", db_tbl[index, "Censoring"])
-      }
-    }, minWidth = 80),
-    URL =  colDef(cell = function(value, index) {
-      if(!is.na(value)) {
-        htmltools::tags$a(href = value, target = "_blank", as.character(value))
-      }
-    })
-  ), 
-  
-  # Extra
-  defaultSorted = list(Start = "desc"), 
-  defaultColDef = colDef(minWidth = 70),
-  searchable = TRUE, 
-  showPageSizeOptions = TRUE,
-  pageSizeOptions = c(4, 8, 12),
-  defaultPageSize = 8,
-  
-  # Expandable
-  details = colDef(
-    name = "More",
-    details = JS("function(rowInfo) {
-return `Details for row: ${rowInfo.index}` +
-`<pre>${JSON.stringify(rowInfo.values, null, 2)}</pre>`
-}"),
-html = TRUE,
-width = 60
-  )
-
-
-)
-
-```
-To help identify which movility data may be most suitable for your use case, we
-have provided the following interactive map to show 
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
-
-
-world <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf") %>% 
-  mutate(ISO3C = iso_a3)
-
-merged_data <- world %>% 
-  left_join(db_tbl, by = c("ISO3C" = "ISO3C"))
-
-mytext <- paste(
-  "Name: ", merged_data$Name,"<br/>", 
-  "Country: ", merged_data$ISO3C,"<br/>", 
-  "Start Date: ", merged_data$Start,"<br/>", 
-  "End Date: ", merged_data$End,"<br/>", 
-  "Sample Size: ", format(merged_data$N,big.mark = ","),"<br/>", 
-  "Data: ", merged_data$Data,"<br/>", 
-  "Scheme: ", merged_data$Scheme,"<br/>", 
-  "Space: ", merged_data$Space,"<br/>", 
-  "URL: ", sprintf('<a href="%s" target="_blank">%s</a>', merged_data$URL, merged_data$URL), 
-  sep="") %>%
-  lapply(htmltools::HTML)
-
-
-merged_data <- merged_data %>% mutate(logN = log10(N))
-N_palette <- leaflet::colorBin( palette="YlOrBr", 
-                                domain=c(0, max(merged_data$logN,na.rm = TRUE)), na.color="transparent")
-
-leaflet::leaflet(merged_data) %>%
-  leaflet::addTiles() %>%
-  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "call data record"),
-                       fillColor = ~N_palette(logN),
-                       color = "#BDBDC3",
-                       stroke = FALSE,
-                       weight = 0,
-                       opacity = 1,
-                       fillOpacity = 0.8,
-                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
-                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "call data record")], 
-                       group = "Call Data Records") %>%
-  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "facebook"),
-                       fillColor = ~N_palette(logN),
-                       color = "#BDBDC3",
-                       stroke = FALSE,
-                       weight = 0,
-                       opacity = 1,
-                       fillOpacity = 0.8,
-                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
-                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "facebook")], 
-                       group = "Facebook Data") %>%
-  leaflet::addLegend( pal=N_palette, 
-                      values=~logN, 
-                      opacity=0.9,
-                      title = "Sample Size:", 
-                      position = "bottomleft", 
-                      labFormat = leaflet::labelFormat(prefix = "10^", between = " - 10^", transform = function(x){(x)})
-                      ) %>% 
-  # Layers control
-  leaflet::addLayersControl(
-    baseGroups = c("Call Data Records", "Facebook"),
-    options = leaflet::layersControlOptions(collapsed = FALSE,)
-  )
-
-
-
-
-```
 
 ```{css, echo=FALSE}
 #pkgdown-sidebar {

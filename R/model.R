@@ -129,17 +129,32 @@ nomad_model_ <- R6::R6Class(
     get_data_name = function() private$data_name,
 
     #' Get check results
-    #' @return Data name
+    #' @return Results of model check
     get_check_res = function() private$check_res,
+
+    #' Set check results
+    #' @param check_res Results of model check
+    set_check_res = function(check_res) {
+      private$check_res <- check_res
+    },
 
     #' Get the model's name
     #' @return Model name
     get_model_name = function() {
+
       # Get the name of the nomad model
-      mod <- model_types()[match(self$get_model()$model, names(model_types()))]
+      mt <- model_types()
+      mod <- names(mt)[match(self$get_model()$type, mt)]
+
+      # Get if hierarchical
+      hierarchical <- model_hierarchical_string(self$get_model())
+
+      # create short hand name
       name <- paste(self$get_data_name(), "mod",
                     as.character(mod), self$get_model()$type,
+                    hierarchical,
                     sep = "_")
+
       return(name)
     }
 
@@ -148,7 +163,8 @@ nomad_model_ <- R6::R6Class(
   private = list(
     model = NULL,
     data_name = NULL,
-    check_res = NULL
+    check_res = NULL,
+    test = NULL
   )
 )
 
