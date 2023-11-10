@@ -14,10 +14,10 @@ knitr::opts_chunk$set(
 ```
 
 <!-- badges: start -->
-[![R build status](https://github.com/OJWatson/nomad/workflows/R-CMD-check/badge.svg)](https://github.com/OJWatson/nomad/actions)
+[![R build status](https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml.yaml)
 [![CodeFactor](https://www.codefactor.io/repository/github/OJWatson/nomad/badge)](https://www.codefactor.io/repository/github/OJWatson/nomad)
 [![codecov.io](https://codecov.io/github/OJWatson/nomad/coverage.svg?branch=main)](https://codecov.io/github/OJWatson/nomad?branch=main)
-[![R-CMD-check](https://github.com/afyac/mast/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/afyac/mast/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 ## <img src='man/figures/logo.png' style="height:75px;"/>
