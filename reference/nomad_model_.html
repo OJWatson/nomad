@@ -32,13 +32,13 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/data.html">Data</a>
+      <a href="../articles/data.html">nomad databases</a>
     </li>
     <li>
       <a href="../articles/introduction.html">Introduction</a>
     </li>
     <li>
-      <a href="../articles/model.html">Models</a>
+      <a href="../articles/model.html">Models and Mobility Data</a>
     </li>
     <li>
       <a href="../articles/structure.html">Package Structure</a>
@@ -76,9 +76,10 @@
 <li><p><a href="#method-nomad_model-get_model"><code>nomad_model_$get_model()</code></a></p></li>
 <li><p><a href="#method-nomad_model-get_data_name"><code>nomad_model_$get_data_name()</code></a></p></li>
 <li><p><a href="#method-nomad_model-get_check_res"><code>nomad_model_$get_check_res()</code></a></p></li>
+<li><p><a href="#method-nomad_model-set_check_res"><code>nomad_model_$set_check_res()</code></a></p></li>
 <li><p><a href="#method-nomad_model-get_model_name"><code>nomad_model_$get_model_name()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-nomad_model-new"></a><div class="section">
-<h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
+<h3 id="method-new-">Method <code><a href="https://rdrr.io/r/methods/new.html" class="external-link">new()</a></code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Create a new <code>nomad</code> mobility model</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/nomad_model_.html">nomad_model_</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">model</span>, <span class="va">data_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -105,7 +106,7 @@ connectivity matrix based on estimated parameters.</p>
 </div>
 
 </div><p></p><hr><a id="method-nomad_model-predict"></a><div class="section">
-<h3 id="method-predict-">Method <code><a href="predict.html">predict()</a></code><a class="anchor" aria-label="anchor" href="#method-predict-"></a></h3>
+<h3 id="method-predict-">Method <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code><a class="anchor" aria-label="anchor" href="#method-predict-"></a></h3>
 
 <div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
@@ -254,15 +255,33 @@ Get check results</p>
 
 <div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>Data name
-Get the model's name</p>
+<p>Results of model check
+Set check results</p>
+</div>
+
+</div><p></p><hr><a id="method-nomad_model-set_check_res"></a><div class="section">
+<h3 id="method-set-check-res-">Method <code>set_check_res()</code><a class="anchor" aria-label="anchor" href="#method-set-check-res-"></a></h3>
+
+<div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">nomad_model_</span><span class="op">$</span><span class="fu">set_check_res</span><span class="op">(</span><span class="va">check_res</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>check_res</code></dt>
+<dd><p>Results of model check
+Get the model's name</p></dd>
+
+
+</dl><p></p></div>
 </div>
 
 </div><p></p><hr><a id="method-nomad_model-get_model_name"></a><div class="section">
 <h3 id="method-get-model-name-">Method <code>get_model_name()</code><a class="anchor" aria-label="anchor" href="#method-get-model-name-"></a></h3>
 
 <div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">nomad_model_</span><span class="op">$</span><span class="fu">get_model_name</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

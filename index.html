@@ -61,13 +61,13 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/data.html">Data</a>
+      <a href="articles/data.html">nomad databases</a>
     </li>
     <li>
       <a href="articles/introduction.html">Introduction</a>
     </li>
     <li>
-      <a href="articles/model.html">Models</a>
+      <a href="articles/model.html">Models and Mobility Data</a>
     </li>
     <li>
       <a href="articles/structure.html">Package Structure</a>
@@ -103,6 +103,76 @@
 <p>To install <code>nomad</code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"OJWatson/nomad"</span>, upgrade <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="demonstration">Demonstration<a class="anchor" aria-label="anchor" href="#demonstration"></a>
+</h3>
+<p>Most users will come to use <code>nomad</code> with a shape file for which they want mobility predictions.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="co"># Get our shape object. Here let's use the MAP Zambia Admin 2</span></span>
+<span><span class="va">zmbsf</span> <span class="op">&lt;-</span> <span class="fu">malariaAtlas</span><span class="fu">::</span><span class="fu">getShp</span><span class="op">(</span>ISO <span class="op">=</span> <span class="st">"ZMB"</span>, admin_level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"admin2"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>For our given shape file, we need to fetch population sizes, which <code>nomad</code> makes easy by wrapping WorldPop</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Use the inbuilt population fetch functions in nomad</span></span>
+<span><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">::</span><span class="fu"><a href="reference/get_pop.html">get_pop</a></span><span class="op">(</span><span class="st">"ZMB"</span>, <span class="fl">2020</span><span class="op">)</span></span></code></pre></div>
+<p>Next we need to unpack this to create population sizes for our regions</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># And unpack the population based on our shape file</span></span>
+<span><span class="va">pop_extract</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">::</span><span class="fu"><a href="reference/unpack_pop.html">unpack_pop</a></span><span class="op">(</span><span class="va">zmbsf</span>, <span class="va">pop</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Calculate our population per region</span></span>
+<span><span class="va">sum</span> <span class="op">&lt;-</span> <span class="va">pop_extract</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">iso</span>, <span class="va">name_2</span>, <span class="va">pop</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/drop_na.html" class="external-link">drop_na</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">name_2</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>pop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>From here we can create the distance matrix and the population sizes</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Now we can create our vector of population sizes needed to predict</span></span>
+<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="va">sum</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">sum</span><span class="op">$</span><span class="va">name_2</span><span class="op">)</span></span>
+<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="va">N</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># And also create our distance matrix of population sizes needed to predict</span></span>
+<span><span class="co"># N.B The coversion from degrees to metres</span></span>
+<span><span class="va">centroids</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_centroid</a></span><span class="op">(</span><span class="va">zmbsf</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu">mobility</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mobility/man/get_distance_matrix.html" class="external-link">get_distance_matrix</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="va">centroids</span><span class="op">[</span>,<span class="st">"X"</span><span class="op">]</span>, </span>
+<span>  y <span class="op">=</span> <span class="va">centroids</span><span class="op">[</span>,<span class="st">"Y"</span><span class="op">]</span>, </span>
+<span>  id <span class="op">=</span> <span class="va">zmbsf</span><span class="op">$</span><span class="va">name_2</span><span class="op">)</span><span class="op">*</span><span class="fl">113.5</span><span class="op">*</span><span class="fl">1000</span> </span></code></pre></div>
+<p>Now we can use a selected model from the <code>nomad</code> model database:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Having selected our most suitable model having looked at the model database</span></span>
+<span><span class="co"># https://ojwatson.github.io/nomad/articles/model.html</span></span>
+<span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">::</span><span class="va"><a href="reference/model_db.html">model_db</a></span><span class="op">$</span><span class="va">zmb_cdr_2020_mod_dd_exp</span></span>
+<span></span>
+<span><span class="co"># Predict mobility model using new data</span></span>
+<span><span class="va">M_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>object<span class="op">=</span><span class="va">mod</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>D <span class="op">=</span> <span class="va">D</span>, N <span class="op">=</span> <span class="va">N</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># And now we can plot our predictions as needed for our own work</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">M_hat</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">destination</span><span class="op">)</span>,</span>
+<span>                y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">origin</span><span class="op">)</span>,</span>
+<span>                fill<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">'Destination'</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Origin"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">8</span><span class="op">)</span>,</span>
+<span>                     axis.text.y<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">8</span><span class="op">)</span>,</span>
+<span>                     axis.title.x<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span>, margin <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">margin</a></span><span class="op">(</span>t <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     axis.title.y<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span>, margin <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">margin</a></span><span class="op">(</span>r <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     legend.position<span class="op">=</span><span class="st">'bottom'</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">viridis</span><span class="fu">::</span><span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span>option<span class="op">=</span><span class="st">'inferno'</span>, </span>
+<span>                              direction<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">'log(Estimated number of trips)'</span>,</span>
+<span>                             title.position<span class="op">=</span><span class="st">'top'</span>,</span>
+<span>                             label.theme<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">9</span><span class="op">)</span>,</span>
+<span>                             barwidth<span class="op">=</span><span class="fl">20</span>,</span>
+<span>                             barheight<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span>                             frame.colour<span class="op">=</span><span class="st">'black'</span>,</span>
+<span>                             ticks<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, hjust <span class="op">=</span> <span class="fl">1</span>, vjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-6-1.png"><!-- --></p>
 <div class="section level4">
 <h4 id="licenses">Licenses<a class="anchor" aria-label="anchor" href="#licenses"></a>
 </h4>

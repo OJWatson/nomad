@@ -38,13 +38,13 @@ expected from a Normal distribution."><meta property="og:image" content="https:/
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/data.html">Data</a>
+      <a href="../articles/data.html">nomad databases</a>
     </li>
     <li>
       <a href="../articles/introduction.html">Introduction</a>
     </li>
     <li>
-      <a href="../articles/model.html">Models</a>
+      <a href="../articles/model.html">Models and Mobility Data</a>
     </li>
     <li>
       <a href="../articles/structure.html">Package Structure</a>
@@ -121,8 +121,8 @@ expected from a Normal distribution.</p>
 <code><a href="https://rdrr.io/pkg/mobility/man/fit_jags.html" class="external-link">fit_jags</a>()</code>,
 <code><a href="https://rdrr.io/pkg/mobility/man/fit_prob_travel.html" class="external-link">fit_prob_travel</a>()</code>,
 <code><a href="https://rdrr.io/pkg/mobility/man/mobility.html" class="external-link">mobility</a>()</code>,
-<code><a href="predict.html">predict()</a></code>,
-<code><a href="residuals.html">residuals()</a></code>,
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>,
+<code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code>,
 <code><a href="https://rdrr.io/pkg/mobility/man/summary.html" class="external-link">summary</a>()</code></p></div>
     </div>
     <div id="author">
@@ -156,8 +156,20 @@ expected from a Normal distribution.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Model check statistics are still available as these are</span></span></span>
 <span class="r-in"><span><span class="co"># saved when model data is removed from object</span></span></span>
-<span class="r-in"><span><span class="fu">nomad</span><span class="fu">::</span><span class="fu"><a href="residuals.html">residuals</a></span><span class="op">(</span><span class="va">nmd_model</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Residuals not available as underlying model data is not available.</span>
+<span class="r-in"><span><span class="fu">nomad</span><span class="fu">::</span><span class="fu">check</span><span class="op">(</span><span class="va">nmd_model</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="check-2.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $DIC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 12442470</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RMSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 447193.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $MAPE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 55.19494</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $R2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.3721586</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </div>

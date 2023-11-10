@@ -34,6 +34,9 @@
     <loc>https://ojwatson.github.io/nomad/reference/check.html</loc>
   </url>
   <url>
+    <loc>https://ojwatson.github.io/nomad/reference/get_pop.html</loc>
+  </url>
+  <url>
     <loc>https://ojwatson.github.io/nomad/reference/index.html</loc>
   </url>
   <url>
@@ -52,15 +55,27 @@
     <loc>https://ojwatson.github.io/nomad/reference/nomad_remove_model_data.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/nomad/reference/predict.html</loc>
+    <loc>https://ojwatson.github.io/nomad/reference/pipe.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/nomad/reference/print.html</loc>
+    <loc>https://ojwatson.github.io/nomad/reference/predict.nomad_model.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/nomad/reference/residuals.html</loc>
+    <loc>https://ojwatson.github.io/nomad/reference/print.nomad_model.html</loc>
   </url>
   <url>
-    <loc>https://ojwatson.github.io/nomad/reference/summary.html</loc>
+    <loc>https://ojwatson.github.io/nomad/reference/rebuild_model_db.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/remake_model_in_db.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/residuals.nomad_model.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/summary.nomad_model.html</loc>
+  </url>
+  <url>
+    <loc>https://ojwatson.github.io/nomad/reference/unpack_pop.html</loc>
   </url>
 </urlset>
