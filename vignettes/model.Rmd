@@ -75,7 +75,7 @@ tbl <- left_join(
   rename(ISO3C = country) %>% 
   rename(N = n) %>% 
   rename(Data = data_type) %>% 
-  rename(Space = aggregation) %>% 
+  rename(Aggregation = aggregation) %>% 
   relocate(ISO3C, .after = Name) %>% 
   relocate(Model, .after = ISO3C) %>% 
   relocate(Type, .after = Model)
@@ -179,21 +179,10 @@ or collected at the same spatial scale.
 
 Sample scheme details, censoring as well as the timing of the sample can all be 
 viewed below.
-
 ```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
 
 # produce our nice table
-db_tbl <- nomad::mobility_db %>% 
-  rename(Name = name) %>% 
-  rename(Data = type) %>% 
-  rename(ISO3C = country) %>% 
-  rename(N = n) %>% 
-  rename(Scheme = sampling_scheme) %>% 
-  rename(Censoring = censoring) %>% 
-  rename(Space = aggregation) %>% 
-  rename(URL = publication) %>% 
-  rename(Start = date_start) %>% 
-  rename(End = date_end)
+db_tbl <- nomad:::rename_mobility_db()
 
 ```
 
@@ -261,6 +250,74 @@ width = 60
 
 
 )
+
+```
+To help identify which movility data may be most suitable for your use case, we
+have provided the following interactive map to show 
+```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+
+
+world <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf") %>% 
+  mutate(ISO3C = iso_a3)
+
+merged_data <- world %>% 
+  left_join(db_tbl, by = c("ISO3C" = "ISO3C"))
+
+mytext <- paste(
+  "Name: ", merged_data$Name,"<br/>", 
+  "Country: ", merged_data$ISO3C,"<br/>", 
+  "Start Date: ", merged_data$Start,"<br/>", 
+  "End Date: ", merged_data$End,"<br/>", 
+  "Sample Size: ", format(merged_data$N,big.mark = ","),"<br/>", 
+  "Data: ", merged_data$Data,"<br/>", 
+  "Scheme: ", merged_data$Scheme,"<br/>", 
+  "Space: ", merged_data$Space,"<br/>", 
+  "URL: ", sprintf('<a href="%s" target="_blank">%s</a>', merged_data$URL, merged_data$URL), 
+  sep="") %>%
+  lapply(htmltools::HTML)
+
+
+merged_data <- merged_data %>% mutate(logN = log10(N))
+N_palette <- leaflet::colorBin( palette="YlOrBr", 
+                                domain=c(0, max(merged_data$logN,na.rm = TRUE)), na.color="transparent")
+
+leaflet::leaflet(merged_data) %>%
+  leaflet::addTiles() %>%
+  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "call data record"),
+                       fillColor = ~N_palette(logN),
+                       color = "#BDBDC3",
+                       stroke = FALSE,
+                       weight = 0,
+                       opacity = 1,
+                       fillOpacity = 0.8,
+                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
+                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "call data record")], 
+                       group = "Call Data Records") %>%
+  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "facebook"),
+                       fillColor = ~N_palette(logN),
+                       color = "#BDBDC3",
+                       stroke = FALSE,
+                       weight = 0,
+                       opacity = 1,
+                       fillOpacity = 0.8,
+                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
+                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "facebook")], 
+                       group = "Facebook Data") %>%
+  leaflet::addLegend( pal=N_palette, 
+                      values=~logN, 
+                      opacity=0.9,
+                      title = "Sample Size:", 
+                      position = "bottomleft", 
+                      labFormat = leaflet::labelFormat(prefix = "10^", between = " - 10^", transform = function(x){(x)})
+                      ) %>% 
+  # Layers control
+  leaflet::addLayersControl(
+    baseGroups = c("Call Data Records", "Facebook"),
+    options = leaflet::layersControlOptions(collapsed = FALSE,)
+  )
+
+
+
 
 ```
 
