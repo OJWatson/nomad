@@ -163,8 +163,7 @@ nomad_model_ <- R6::R6Class(
   private = list(
     model = NULL,
     data_name = NULL,
-    check_res = NULL,
-    test = NULL
+    check_res = NULL
   )
 )
 

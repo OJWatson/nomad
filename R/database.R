@@ -42,7 +42,7 @@ remake_model_in_db <- function(model) {
   new <- nomad_model(model = model$get_model(),
                      data_name = model$get_data_name())
 
-  new$set_deviance_res(model$get_deviance_res())
+  new$set_check_res(model$get_check_res())
   new
 }
 
