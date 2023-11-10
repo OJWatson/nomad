@@ -26,7 +26,8 @@ Suggests:
     reactable,
     htmltools,
     rnaturalearth,
-    rnaturalearthhires
+    rnaturalearthhires,
+    leaflet
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
 Depends: 
