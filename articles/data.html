@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -81,7 +81,8 @@
 
       
 
-      </header><script src="data_files/core-js-2.5.3/shim.min.js"></script><script src="data_files/react-18.2.0/react.min.js"></script><script src="data_files/react-18.2.0/react-dom.min.js"></script><script src="data_files/reactwidget-1.0.0/react-tools.js"></script><script src="data_files/htmlwidgets-1.6.2/htmlwidgets.js"></script><link href="data_files/reactable-0.4.4/reactable.css" rel="stylesheet">
+      </header><script src="data_files/core-js-2.5.3/shim.min.js"></script><script src="data_files/react-18.2.0/react.min.js"></script><script src="data_files/react-18.2.0/react-dom.min.js"></script><script src="data_files/reactwidget-1.0.0/react-tools.js"></script><link href="data_files/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="data_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="data_files/reactable-0.4.4/reactable.css" rel="stylesheet">
 <script src="data_files/reactable-binding-0.4.4/reactable.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
@@ -116,8 +117,8 @@ For example, let’s look at <code>zmb_cdr_2020_mod_dd_exp</code>.</p>
 <p>Each of the names in the model’s snake_case name refer either to the
 data that the model was fit using or the type of model that was fit. For
 example:</p>
-<div class="reactable html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-e8f10ffa51aebaa8a700" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-e8f10ffa51aebaa8a700">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Name":["zmb","cdr","2020","mod","dd","exp"],"Description":["ISO3C county code for where data was collected","Type of mobility data. cdr = Call Data Record","Year of data collection","mod signifies the following labels relate to the model","Which mobility model. dd = Departure-Diffusion","Sub-Type of mobility model. exp = Exponential"]},"columns":[{"id":"Name","name":"Name","type":"character","minWidth":80},{"id":"Description","name":"Description","type":"character","minWidth":80}],"resizable":true,"highlight":true,"nowrap":true,"dataKey":"4099d347444d651ded523a32efb9b8df"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><p>The naming conventions help with documenting the models and enable
+<div class="reactable html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Name":["zmb","cdr","2020","mod","dd","exp"],"Description":["ISO3C county code for where data was collected","Type of mobility data. cdr = Call Data Record","Year of data collection","mod signifies the following labels relate to the model","Which mobility model. dd = Departure-Diffusion","Sub-Type of mobility model. exp = Exponential"]},"columns":[{"id":"Name","name":"Name","type":"character","minWidth":80},{"id":"Description","name":"Description","type":"character","minWidth":80}],"resizable":true,"highlight":true,"nowrap":true,"dataKey":"4099d347444d651ded523a32efb9b8df"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><p>The naming conventions help with documenting the models and enable
 linking to the mobility database to query further information about the
 underlying mobility data each model was fit using. All names in the
 snake case model name before <code>mod</code> refer to the mobility
@@ -135,8 +136,8 @@ research purposes. For example, searching for data sets that are from
 similar populations, or conducted at similar spatial scales.</p>
 <p>The table provides the following information about the mobility
 datasets:</p>
-<div class="reactable html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-4269a4f86f0e48a4066a" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-4269a4f86f0e48a4066a">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Name":["name","country","date_start","date_end","n","type","sampling_scheme","censoring","aggregation","url"],"Description":["Name of mobility data","ISO3C country code for where data was collected","Start date of data collection","End date of data collection","Number of data records","Type of mobility data, e.g. call data records, facebook","Free text description of sample scheme","Free text description of any censoring","Spatial scale of aggregation, e.g. admin_2","URL for associated publication or raw data"]},"columns":[{"id":"Name","name":"Name","type":"character","minWidth":80},{"id":"Description","name":"Description","type":"character","minWidth":80}],"resizable":true,"highlight":true,"nowrap":true,"dataKey":"7381311b0efd1cb0c10cde42211ab728"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><p>The <code>name</code> of the mobility data matches the start of each
+<div class="reactable html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Name":["name","country","date_start","date_end","n","type","sampling_scheme","censoring","aggregation","url"],"Description":["Name of mobility data","ISO3C country code for where data was collected","Start date of data collection","End date of data collection","Number of data records","Type of mobility data, e.g. call data records, facebook","Free text description of sample scheme","Free text description of any censoring","Spatial scale of aggregation, e.g. admin_2","URL for associated publication or raw data"]},"columns":[{"id":"Name","name":"Name","type":"character","minWidth":80},{"id":"Description","name":"Description","type":"character","minWidth":80}],"resizable":true,"highlight":true,"nowrap":true,"dataKey":"7381311b0efd1cb0c10cde42211ab728"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><p>The <code>name</code> of the mobility data matches the start of each
 mobility model’s data.</p>
 </div>
 </div>
@@ -314,7 +315,7 @@ maintainers of <code>nomad</code> (<span class="citation">@OJWatson</span>).</li
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
 </div>
 
       </footer>
