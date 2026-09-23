@@ -10,6 +10,7 @@ nomad_remove_model_data(
   D = FALSE,
   N_orig = FALSE,
   N_dest = FALSE,
+  S = FALSE,
   save_model_checks = FALSE,
   ...
 )
@@ -24,6 +25,8 @@ nomad_remove_model_data(
 \item{N_orig}{Population Origin Data. Default = FALSE}
 
 \item{N_dest}{Population Destination Data. Default = FALSE}
+
+\item{S}{Radiation intervening opportunity matrix. Default = FALSE}
 
 \item{save_model_checks}{Logical to save model check results. Default = FALSE}
 

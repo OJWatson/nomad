@@ -1,336 +1,240 @@
 ---
 title: "Models and Mobility Data"
-output: 
+output:
   rmarkdown::html_vignette:
-    toc: false 
+    toc: false
 vignette: >
-  %\VignetteIndexEntry{Models}
+  %\VignetteIndexEntry{Models and Mobility Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-resource_files:
-  - model_imgs/
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>"
 )
-
-library(tidyverse)
-library(reactable)
+source(system.file("rmarkdown", "folding.R", package = "nomad"))
 ```
 
-This vignette provides a description of the performance of each model in `nomad`
-and the mobility data that underpins those models. This vignette provides all
-the information required to help you identify the most suitable model for your
-needs.
+```{r setup}
+library(nomad)
+```
+
+This vignette describes the mobility data sources and fitted models currently
+available in `nomad`. Use it to identify source data that are plausible for
+your analysis before moving to the more detailed model-selection vignettes.
 
 ## Mobility Data
 
-The following table provides the description and overall summaries of the 
-different mobility data sets that have been used to create the mobility models
-stored in `nomad`. Users may wish to search for the data that they believe would
-be most representative for their use cases, e.g. collected from the same country, 
-or collected at the same spatial scale. 
+`mobility_table()` returns the metadata catalogue for source mobility datasets.
+The most important fields for model choice are usually country, data type,
+collection period, sample size, and spatial aggregation. `has_fitted_models`
+indicates whether a dataset has any selectable model; FALSE entries are retained
+as catalogue information. The original Zambia prediction periods are unknown,
+while the new Facebook matrices represent average 21-day trip counts.
 
-Sample scheme details, censoring as well as the timing of the sample can all be 
-viewed below.
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
-
-# produce our nice table
-db_tbl <- nomad:::rename_mobility_db()
-
+```{r}
+mobility_table()
 ```
 
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+For the package website, the same information is shown as a searchable table.
+
+```{r, echo = FALSE}
+mobility_display <- mobility_table()
 
 reactable::reactable(
-  db_tbl,
-  
-  # Table Styling
-  resizable = TRUE, 
-  wrap = FALSE, 
+  mobility_display,
+  searchable = TRUE,
   bordered = TRUE,
   highlight = TRUE,
-  
-  # Column Styling
+  defaultPageSize = 8,
   columns = list(
-    Name = colDef(
-      sticky = "left",
-      minWidth = 140,
-      # Add a right border style to visually distinguish the sticky column
-      style = list(borderRight = "1px solid #000"),
-      headerStyle = list(borderRight = "1px solid #000")
+    name = reactable::colDef(name = "Dataset", sticky = "left", minWidth = 150),
+    country = reactable::colDef(name = "ISO3", minWidth = 70),
+    n = reactable::colDef(
+      name = "Records",
+      cell = function(value) {
+        if (is.na(value)) {
+          return(NA)
+        }
+        format(value, big.mark = ",")
+      }
     ),
-    ISO3c = colDef(minWidth = 60),
-    Type = colDef(minWidth = 60),
-    N = colDef(minWidth = 100),
-    Data = colDef(minWidth = 100),
-    Start = colDef(minWidth = 100),
-    End = colDef(minWidth = 100),
-    Scheme = colDef(details = function(index) {
-      if(!is.na(db_tbl[index, "Scheme"])){
-        paste("Scheme: ", db_tbl[index, "Scheme"])
-      }
-    }),
-    Censoring = colDef(details = function(index) {
-      if(!is.na(db_tbl[index, "Censoring"])){
-        paste("Censoring: ", db_tbl[index, "Censoring"])
-      }
-    }, minWidth = 80),
-    URL =  colDef(cell = function(value, index) {
-      if(!is.na(value)) {
+    has_fitted_models = reactable::colDef(name = "Fitted models in database"),
+    prediction_period_days = reactable::colDef(name = "Prediction period (days)"),
+    publication = reactable::colDef(
+      name = "Publication",
+      cell = function(value) {
+        if (is.na(value)) {
+          return(NA)
+        }
         htmltools::tags$a(href = value, target = "_blank", as.character(value))
       }
-    })
-  ), 
-  
-  # Extra
-  defaultSorted = list(Start = "desc"), 
-  defaultColDef = colDef(minWidth = 70),
-  searchable = TRUE, 
-  showPageSizeOptions = TRUE,
-  pageSizeOptions = c(4, 8, 12),
-  defaultPageSize = 8,
-  
-  # Expandable
-  details = colDef(
-    name = "More",
-    details = JS("function(rowInfo) {
-return `Details for row: ${rowInfo.index}` +
-`<pre>${JSON.stringify(rowInfo.values, null, 2)}</pre>`
-}"),
-html = TRUE,
-width = 60
+    )
   )
-
-
 )
-
 ```
 
-To help identify which mobility data may be most suitable for your use case, we
-have provided the following interactive map to show you the locations of all 
-available mobility data:
+## Fitted Models
 
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
+`model_table()` joins fitted model metadata, source dataset metadata, and model
+fit statistics.
 
-
-world <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf") %>% 
-  mutate(ISO3C = iso_a3)
-
-merged_data <- world %>% 
-  left_join(db_tbl, by = c("ISO3C" = "ISO3C"))
-
-mytext <- paste(
-  "Name: ", merged_data$Name,"<br/>", 
-  "Country: ", merged_data$ISO3C,"<br/>", 
-  "Start Date: ", merged_data$Start,"<br/>", 
-  "End Date: ", merged_data$End,"<br/>", 
-  "Sample Size: ", format(merged_data$N,big.mark = ","),"<br/>", 
-  "Data: ", merged_data$Data,"<br/>", 
-  "Scheme: ", merged_data$Scheme,"<br/>", 
-  "Space: ", merged_data$Space,"<br/>", 
-  "URL: ", sprintf('<a href="%s" target="_blank">%s</a>', merged_data$URL, merged_data$URL), 
-  sep="") %>%
-  lapply(htmltools::HTML)
-
-
-merged_data <- merged_data %>% mutate(logN = log10(N))
-N_palette <- leaflet::colorBin( palette="YlOrBr", 
-                                domain=c(0, max(merged_data$logN,na.rm = TRUE)), na.color="transparent")
-
-leaflet::leaflet(merged_data) %>%
-  leaflet::addTiles() %>%
-  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "call data record"),
-                       fillColor = ~N_palette(logN),
-                       color = "#BDBDC3",
-                       stroke = FALSE,
-                       weight = 0,
-                       opacity = 1,
-                       fillOpacity = 0.8,
-                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
-                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "call data record")], 
-                       group = "Call Data Records") %>%
-  leaflet::addPolygons(data = merged_data %>% filter(!is.na(Name), Data == "facebook"),
-                       fillColor = ~N_palette(logN),
-                       color = "#BDBDC3",
-                       stroke = FALSE,
-                       weight = 0,
-                       opacity = 1,
-                       fillOpacity = 0.8,
-                       highlight = leaflet::highlightOptions(weight = 3, color = "#666", bringToFront = TRUE),
-                       label = mytext[which(!is.na(merged_data$Name) & merged_data$Data == "facebook")], 
-                       group = "Facebook Data") %>%
-  leaflet::addLegend( pal=N_palette, 
-                      values=~logN, 
-                      opacity=0.9,
-                      title = "Sample Size:", 
-                      position = "bottomleft", 
-                      labFormat = leaflet::labelFormat(prefix = "10^", between = " - 10^", transform = function(x){(x)})
-                      ) %>% 
-  # Layers control
-  leaflet::addLayersControl(
-    baseGroups = c("Call Data Records", "Facebook"),
-    options = leaflet::layersControlOptions(collapsed = FALSE,)
-  )
-
+```{r}
+model_table()[, c(
+  "name", "country", "data_type", "aggregation",
+  "mobility_model", "model_type", "DIC", "RMSE", "MAPE", "R2", "max_rhat"
+)]
 ```
 
-## Model Performance
+```{r, echo = FALSE}
+model_display <- model_table()
 
-The following table provides the description and overall evaluation statistics
-of each model that is stored in `nomad`. 
-
-You can search across all the models, e.g. by searching for models that used
-the mobility data that you have identified as most suitable for your setting,
-or by sorting the model table with respect to desired model characteristics, 
-e.g. lowest DIC. By default the table is sorted by the $R^2$ of the model fit. 
-
-Alternatively, you could select for specific mobility models (`gravity`, 
-`radiation`, and `departure-diffusion`) or their 
-sub types (see `?mobility::mobility`) for more information on sub-types.
-
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
-
-# create stats
-modstat <- do.call(rbind, lapply(nomad::model_db, nomad::check, plots = FALSE))
-modstat <- as.data.frame(modstat)
-modstat <- modstat %>% 
-  mutate(model = rownames(modstat), .before = 1)
-
-# generate mod descriptions
-nomad_model_descriptions <- function(names){
-  
-  data_names <- gsub("(.*)(_mod.*)", "\\1", names)
-  mobility_model <- vapply(strsplit(names, "_"), FUN.VALUE = character(1), "[[", 5)
-  model_type <- vapply(strsplit(names, "_"), FUN.VALUE = character(1), "[[", 6)
-  data.frame(mobility_model = mobility_model,
-             model_type = model_type,
-             name = data_names)
-}
-
-# bring together and present in DT
-mod_desc <- nomad_model_descriptions(rownames(modstat))
-
-# get suitable columns from mobility_db
-mob_db <- nomad::mobility_db
-mob_db <- mob_db %>% select(name, country, n, type, aggregation) %>% 
-  rename(data_type = type)
-
-# bring together
-tbl <- left_join(
-  cbind(modstat, mod_desc), 
-  mob_db, by = "name") %>% 
-  select(-name) %>% 
-  rename(Name = model) %>% 
-  rename(Model = mobility_model) %>% 
-  rename(Type = model_type) %>% 
-  rename(ISO3C = country) %>% 
-  rename(N = n) %>% 
-  rename(Data = data_type) %>% 
-  rename(Aggregation = aggregation) %>% 
-  relocate(ISO3C, .after = Name) %>% 
-  relocate(Model, .after = ISO3C) %>% 
-  relocate(Type, .after = Model)
-
-```
-
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset"}
-
-# produce our nice table
 reactable::reactable(
-  tbl,
-  
-  # Table Styling
-  resizable = TRUE, 
-  wrap = FALSE, 
+  model_display,
+  searchable = TRUE,
   bordered = TRUE,
   highlight = TRUE,
-  
-  # Column Styling
+  defaultSorted = list(R2 = "desc"),
+  defaultPageSize = 8,
   columns = list(
-    Name = colDef(
-      sticky = "left",
-      minWidth = 200,
-      # Add a right border style to visually distinguish the sticky column
-      style = list(borderRight = "1px solid #000"),
-      headerStyle = list(borderRight = "1px solid #000")
+    name = reactable::colDef(name = "Model", sticky = "left", minWidth = 220),
+    data_name = reactable::colDef(name = "Dataset", minWidth = 150),
+    country = reactable::colDef(name = "ISO3", minWidth = 70),
+    max_rhat = reactable::colDef(
+      name = "Maximum R-hat",
+      cell = function(value) {
+        if (is.na(value)) return("Not available/applicable")
+        if (value > 1.1) paste0(value, " — review fit") else as.character(value)
+      }
     ),
-    ISO3c = colDef(minWidth = 60),
-    Model = colDef(minWidth = 60),
-    Type = colDef(minWidth = 60),
-    DIC = colDef(cell = function(value){formatC(value, format = "e", digits = 2)}, minWidth = 80),
-    RMSE = colDef(cell = function(value){formatC(value, format = "e", digits = 2)}, minWidth = 80),
-    MAPE = colDef(cell = function(value){formatC(value, format = "e", digits = 2)}, minWidth = 80),
-    R2 = colDef(cell = function(value){formatC(value,  digits = 2)}, minWidth = 60),
-    N = colDef(minWidth = 100),
-    Data = colDef(minWidth = 100)
-  ), 
-  
-  # Extra
-  defaultSorted = list(R2 = "desc"), 
-  defaultColDef = colDef(minWidth = 80),
-  searchable = TRUE, 
-  showPageSizeOptions = TRUE,
-  pageSizeOptions = c(4, 8, 12),
-  defaultPageSize = 4
+    DIC = reactable::colDef(cell = function(value) formatC(value, format = "e", digits = 2)),
+    RMSE = reactable::colDef(cell = function(value) formatC(value, format = "e", digits = 2)),
+    MAPE = reactable::colDef(cell = function(value) formatC(value, digits = 2)),
+    R2 = reactable::colDef(cell = function(value) formatC(value, digits = 2))
+  )
 )
-
 ```
 
+Fit statistics are useful for comparing candidate models, especially when the
+models were fitted to the same source dataset. They should still be interpreted
+alongside source relevance: a lower error metric does not make a model suitable
+for a country, time period, or spatial scale that differs from the fitted data.
+
+The supplied summaries also contain MCMC diagnostics. `max_rhat` and
+`min_n_eff` report the worst stored R-hat and effective sample size per fit.
+`rhat_above_1_1` flags 111 of the 512 fits with summaries for review; basic/finite
+radiation has no MCMC diagnostics. This flag is a coarse screen, not a guarantee
+of convergence below that threshold. All supplied fits are retained unchanged.
+Inspect `summary(model)` and the original fitting analysis before relying on a
+flagged model; successful software checks do not establish statistical calibration.
+
+## Model Profiles
+
+`model_profile()` gives a compact summary of the source data stored in a fitted
+model object. This is the quickest way to check spatial scale, population scale,
+dates, and whether the original mobility data are bundled.
+
+```{r}
+model_profile(model_db$zmb_cdr_2020_mod_dd_exp)
+```
+
+```{r}
+model_profile(model_db$zmb_fb_2020_mod_grav_exp)
+```
 
 ## Model Fit Checks
 
-```{r eval=TRUE, echo=FALSE, layout="l-body-outset",fig.dpi=300, fig.height=4, fig.width=8, include = FALSE}
+`check()` returns model fit statistics. `plot()` draws the model-check plot when
+it is available. For private-data models, `nomad` can retain these diagnostics
+without bundling the underlying mobility matrix.
 
-pl <- lapply(nomad::model_db, function(x){
-  ch_out <- nomad::check(x, plots = TRUE)
-  capture <- recordPlot()
-  return(capture)
-})
-names(pl) <- names(nomad::model_db)
-
-dir.create("model_imgs", showWarnings = FALSE)
-# Save each plot as an image file
-for (name in names(pl)) {
-  filename <- paste0("model_imgs/",name, ".png")
-  png(filename, width = 8, height = 4, units = "in", res = 300)
-  replayPlot(pl[[name]])
-  dev.off()
-}
-
+```{r}
+check(model_db$zmb_fb_2020_mod_grav_exp, plots = FALSE)
 ```
 
-```{js, echo = FALSE}
-function changePlot() {
-var plotName = document.getElementById("plotSelect").value;
-var imagePath = "model_imgs/" + plotName + ".png";
-document.getElementById("plotImage").src = imagePath;
-}
+```{r, fig.width = 8, fig.height = 4, dpi = 150}
+plot(model_db$zmb_fb_2020_mod_grav_exp)
 ```
 
-The overall summary statistics provided above may not be the most useful way to
-evaluate the model's overall fit. Alternatively, you can view the model fit
-summary plots below by selecting for the given plot name:
+## Where To Go Next
 
-<!-- Create our html selector -->
-<select id="plotSelect" onchange="changePlot()">
-<!-- Use R to generate options dynamically -->
-`r paste0("<option value='", names(pl), "'>", names(pl), "</option>", collapse = "\n")`
-</select>
+Use the selecting-a-model vignette for warnings, uncertainty summaries,
+prediction differences, and ensembles. Use the outbreak model-selection vignette
+for an example of comparing mobility assumptions against a downstream
+epidemiological outcome.
 
-<!-- Initial image displayed -->
-<img id="plotImage" src="model_imgs/zmb_cdr_2020_mod_dd_exp.png" style="width:100%;"/>
+## Explore source locations
 
+The map shows source countries and administrative-region centroids. Select a
+new Facebook dataset to inspect its regions; a point represents an aggregated
+source region, not an individual traveller or a prediction location. Country
+popups distinguish the number of catalogued datasets from those with fitted
+models. The metadata-only CDR entries remain in the table above.
 
-
-```{css, echo=FALSE}
-#pkgdown-sidebar {
-display: none;
+```{r, fold_label="Show how the source map is assembled"}
+locations <- readRDS(system.file("extdata", "source_locations.rds", package = "nomad"))
+world <- rnaturalearth::ne_countries(scale = "small", returnclass = "sf")
+world <- world[world$iso_a3 %in% mobility_display$country, ]
+world$popup <- vapply(world$iso_a3, function(iso) {
+  datasets <- mobility_display[mobility_display$country == iso, ]
+  paste0(iso, ": ", nrow(datasets), " datasets; ",
+         sum(datasets$has_fitted_models), " with fitted models")
+}, character(1))
+map <- leaflet::leaflet(world)
+map <- leaflet::addProviderTiles(map, "CartoDB.Positron")
+map <- leaflet::addPolygons(map, popup = ~popup, weight = 1, fillOpacity = 0.15)
+ids <- sort(unique(locations$data_name))
+for (id in ids) {
+  points <- locations[locations$data_name == id, ]
+  meta <- mobility_display[mobility_display$name == id, ]
+  popup <- paste0(htmltools::htmlEscape(points$label), "<br>", id,
+                  "<br>", meta$aggregation, "; ", meta$prediction_period_days,
+                  "-day predictions; fitted models available")
+  map <- leaflet::addCircleMarkers(map, data = points, lng = ~lon, lat = ~lat,
+                                   radius = 3, group = id, popup = popup)
 }
-.col-md-9 {
-width: 100% !important;
-}
+map <- leaflet::hideGroup(map, ids)
+map <- leaflet::showGroup(map, "zmb_fb_2025")
+map <- leaflet::setView(map, lng = 25, lat = -5, zoom = 3)
+htmlwidgets::onRender(map, '
+function(el, x, ids) {
+  var map = this;
+  var control = L.control({position: "topright"});
+  control.onAdd = function() {
+    var label = L.DomUtil.create("label");
+    label.style.background = "white";
+    label.style.padding = "8px";
+    label.textContent = "Source dataset: ";
+    var select = document.createElement("select");
+    select.setAttribute("aria-label", "Source dataset");
+    ids.forEach(function(id) {
+      var option = document.createElement("option");
+      option.value = id; option.textContent = id;
+      option.selected = id === "zmb_fb_2025";
+      select.appendChild(option);
+    });
+    select.onchange = function() {
+      ids.forEach(function(id) {
+        var group = map.layerManager.getLayerGroup(id);
+        if (group) map.removeLayer(group);
+      });
+      var selected = map.layerManager.getLayerGroup(select.value);
+      if (selected) {
+        map.addLayer(selected);
+        var layers = selected.getLayers();
+        if (layers.length) map.fitBounds(L.featureGroup(layers).getBounds());
+      }
+    };
+    label.appendChild(select);
+    L.DomEvent.disableClickPropagation(label);
+    return label;
+  };
+  control.addTo(map);
+}', data = ids)
 ```
+
+These centroids come from the supplied administrative geometries and match the
+fitted region identifiers. The basemap needs an internet connection; packaged
+metadata, centroids, fits and diagnostic plots remain available offline.

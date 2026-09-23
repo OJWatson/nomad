@@ -12,23 +12,29 @@
 #' @export
 get_pop <- function(iso3c, year) {
 
-  u <- "https://www.worldpop.org/rest/data/pop/wpicuadj1km?iso3="
-  raster_meta <- jsonlite::fromJSON(paste0(u, iso3c))
-
-  raster_files <- raster_meta$data %>%
-    dplyr::filter(.data$popyear == year) %>%
-    dplyr::select(.data$files) %>%
-    unlist()
-
-  raster_file <- raster_files[grepl(".tif", raster_files)]
-
-  td <- tempdir()
-  raster_address <- paste0(td, "/", iso3c, ".tif")
-  df <- utils::download.file(url = raster_file, destfile = raster_address, mode = "wb")
+  if (!is.character(iso3c) || length(iso3c) != 1L || is.na(iso3c) ||
+        !grepl("^[A-Za-z]{3}$", iso3c)) stop("iso3c must be a three-letter code", call. = FALSE)
+  if (!is.numeric(year) || length(year) != 1L || !is.finite(year) || year != round(year)) {
+    stop("year must be a single integer", call. = FALSE)
+  }
+  iso3c <- toupper(iso3c)
+  raster_meta <- population_metadata(iso3c)
+  rows <- raster_meta$data
+  if (is.null(rows) || !all(c("popyear", "files") %in% names(rows))) {
+    stop("WorldPop returned no population metadata for ", iso3c, call. = FALSE)
+  }
+  files <- unique(unlist(rows$files[which(rows$popyear == year)]))
+  files <- files[grepl("\\.tif($|\\?)", files)]
+  if (length(files) != 1L) {
+    stop("Expected one WorldPop raster for ", iso3c, " in ", year,
+         "; found ", length(files), call. = FALSE)
+  }
+  raster_address <- tempfile(paste0(iso3c, "_", year, "_"), fileext = ".tif")
+  download_population(files, raster_address)
   pop <- terra::rast(raster_address)
   names(pop) <- "pop"
 
-  return(pop)
+  pop
 }
 
 #' Extract information from rasters
@@ -45,11 +51,22 @@ unpack_pop <- function(iso3c_sf, pop) {
   raw_values <- terra::extract(x = pop, y = sitesv) %>%
     dplyr::group_by(.data$ID) %>%
     dplyr::summarise(dplyr::across(dplyr::everything(), list)) %>%
-    dplyr::select(-(.data$ID)) %>%
+    dplyr::select(-"ID") %>%
     dplyr::ungroup()
 
   sf_tibble <- tibble::as_tibble(sf::st_drop_geometry(iso3c_sf))
   out <- dplyr::bind_cols(sf_tibble, raw_values)
 
-  return(out)
+  out
+}
+
+#' @noRd
+population_metadata <- function(iso3c) {
+  url <- "https://www.worldpop.org/rest/data/pop/wpicuadj1km?iso3="
+  jsonlite::fromJSON(paste0(url, iso3c))
+}
+
+#' @noRd
+download_population <- function(url, destfile) {
+  utils::download.file(url, destfile, mode = "wb")
 }

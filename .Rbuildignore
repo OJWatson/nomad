@@ -17,6 +17,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 analysis
+^AGENTS\.md$
 ^_pkgdown\.yml$
 ^pkgdown$
 ^data-raw$

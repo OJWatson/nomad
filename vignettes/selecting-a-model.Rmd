@@ -1,0 +1,197 @@
+---
+title: "Selecting a mobility model"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Selecting a mobility model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>")
+source(system.file("rmarkdown", "folding.R", package = "nomad"))
+```
+
+This walkthrough starts with a dataset, compares its fitted models, and predicts
+movement for a common set of regions. You will finish with an explicit ensemble
+and an interactive comparison. You need `nomad`; no private trip data are needed.
+Long setup and plotting blocks can be expanded when you want to inspect the code.
+
+```{r}
+library(nomad)
+```
+
+## Find a relevant source
+
+Start with the setting you want to study. Country alone is not enough: consider
+how movement was measured, the administrative scale, and the population sampled.
+Here we inspect the Zambia datasets. `has_fitted_models` distinguishes catalogue
+entries from datasets you can actually use for prediction.
+
+```{r}
+mobility_table(country = "ZMB")[, c(
+  "name", "aggregation", "has_fitted_models", "prediction_period_days", "distance_unit"
+)]
+```
+
+The new Facebook models describe an average 21-day trip matrix. Collection dates
+describe when observations were gathered, not the interval represented by each
+prediction. The original Zambia models have unknown prediction periods, so we
+will use the new dataset for this comparison.
+
+## Compare fits to the same observations
+
+A dataset can have several fitted model families. The following table shows their
+errors and whether they support new locations. Lower RMSE means smaller typical
+errors against that dataset's observed flows; it is not evidence that a model
+will transfer successfully to another setting.
+
+```{r}
+candidates <- model_table(data_name = "zmb_fb_2025")
+candidates[, c("name", "mobility_model", "RMSE", "DIC", "max_rhat", "supports_newdata")]
+```
+
+Inspect `max_rhat` alongside fit error. A high stored R-hat raises a convergence
+concern; `rhat_above_1_1` is a review flag, not a claim that unflagged fits are
+validated. Consult `summary(model)` for parameter-level diagnostics. Supplied
+parameters are preserved, including flagged fits.
+
+DIC was not calculated for these fits. Requesting DIC weights therefore gives an
+error, including when only one selected model lacks DIC. We can instead request
+RMSE weights because those statistics are available. Compare fit-derived weights
+within one dataset; use deliberate manual weights for comparisons across sources.
+
+```{r}
+weights <- model_weights(data_name = "zmb_fb_2025", metric = "RMSE")
+weights[, c("name", "RMSE", "weight")]
+```
+
+Weights are a starting point for sensitivity analysis. They do not account for
+all differences between the source setting and your application.
+
+## Inspect the source and diagnostics
+
+We will compare exponential gravity with exponential departure-diffusion, both
+fitted to the same Facebook dataset. The profile reports fitted distance units,
+population scale and prediction period; the saved plot shows agreement with the
+original observations even though private trip data are not distributed.
+
+```{r}
+gravity <- model_db$zmb_fb_2025_mod_grav_exp
+departure <- model_db$zmb_fb_2025_mod_dd_exp
+model_profile(gravity)
+check(gravity, plots = FALSE)
+```
+
+```{r, fig.width=8, fig.height=4, fig.alt="Observed and fitted flows for Zambia exponential gravity"}
+plot(gravity)
+```
+
+Look for systematic departures from agreement, not only the summary error.
+A good source-data fit still needs the following checks before transfer.
+
+## Prepare a common prediction setting
+
+For a small example, take eight regions from the source covariates. Rows of `D`
+identify origins, columns identify destinations, and `N` gives each region's
+population. The example preserves those names so predictions can be aligned.
+In a real application, replace these with your regions and population estimates.
+
+```{r, fold_label="Show how to construct the common regions"}
+source <- gravity$get_model()$data
+regions <- rownames(source$D)[1:8]
+newdata <- list(
+  D = source$D[regions, regions],
+  N = source$N_orig[regions]
+)
+```
+
+These distances are in metres. Declaring `unit` makes conversion explicit; nomad
+converts separately for each fitted model. The warnings about fewer regions or a
+smaller population are useful here: this subset is smaller than the full source
+setting. Transfer is supported, but its interpretation needs care.
+
+```{r}
+a <- predict(gravity, newdata = newdata, unit = "m", duration = 21)
+b <- predict(departure, newdata = newdata, unit = "m", duration = 21)
+round(a[1:4, 1:4])
+```
+
+Each entry is predicted trips from its row region to its column region over
+21 days. It is not a probability or a count of unique travellers. A 42-day request
+would double these values under a constant-rate assumption; it would not model
+seasonality. Leave duration unset for an original Zambia model with an unknown
+period: unscaled prediction warns, whereas duration conversion errors.
+
+## Recognise unsupported requests
+
+Basic and finite radiation models retain predictions for their exact original
+regions and populations. They cannot transfer the stored matrix to the eight-region
+subset above. Nomad rejects that request directly, including through an ensemble,
+and explains how to choose a transferable model or recalculate radiation with
+`mobility` when you have the necessary trip totals.
+
+```{r}
+radiation <- model_db$zmb_fb_2025_mod_rad_basic
+original <- predict(radiation)
+dim(original)
+```
+
+Changing the target country, spatial scale or population of a transferable model
+produces advisory warnings, rather than this radiation capability error. Supply
+`locations` as an `sf` object or longitude/latitude table to enable country checks.
+No bundled model represents international travel. Check those warnings before
+interpreting a cross-border prediction.
+
+## Inspect uncertainty
+
+A point prediction uses mean parameter estimates. With `nsim = 100`, a supported
+model returns an array whose third dimension indexes simulated matrices. The
+summary below describes variation in total and between-region movement; these
+are parameter draws, not a guarantee of predictive calibration.
+
+```{r}
+draws <- predict(gravity, newdata = newdata, unit = "m", nsim = 100, seed = 42)
+uncertainty_summary(draws, metrics = c("total", "between_region", "max"))
+selected <- uncertainty_matrices(draws, metric = "between_region", probs = c(0.1, 0.5, 0.9))
+attr(selected, "selected")
+```
+
+The selected matrices represent lower, middle and upper movement according to
+that metric. They are complete draws, rather than a matrix made by taking an
+independent quantile in each cell. Changing the metric may select different draws.
+
+```{r, fig.width=7, fig.height=4, fig.alt="Lower, median and upper mobility matrices selected by between-region movement"}
+plot_uncertainty(draws, metric = "between_region")
+```
+
+## Compare and combine predictions
+
+Both matrices now describe the same named target regions and period. Their
+difference is meaningful: positive entries below mean that gravity predicts more
+trips than departure-diffusion. Nomad aligns reordered region names and rejects
+matrices referring to different target regions.
+
+```{r}
+round(prediction_difference(a, b)[1:4, 1:4])
+ensemble <- nomad_ensemble(list(gravity = gravity, departure = departure),
+                           weights = c(gravity = 0.6, departure = 0.4))
+combined <- predict(ensemble, newdata = newdata, unit = "m", duration = 21)
+c(gravity = sum(a), departure = sum(b), ensemble = sum(combined))
+```
+
+These manual weights state our choice explicitly. Equal weights are also a valid
+choice, but nomad will never substitute them when requested fit-based weights
+cannot be calculated.
+
+The slider below varies the weight of departure-diffusion (model B). The two
+individual predictions stay fixed; the ensemble and its difference from gravity
+update immediately. The same function works in an R notebook or saved HTML widget.
+
+```{r}
+compare_models(gravity, departure, newdata = newdata, unit = "m", duration = 21)
+```
+
+Carry several plausible mobility assumptions into your downstream analysis.
+The outbreak vignette demonstrates how changing only mobility affects a simple
+simulated epidemic, with the transmission assumptions held fixed.

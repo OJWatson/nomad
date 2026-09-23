@@ -15,8 +15,11 @@ A nomad mobility model
 \item \href{#method-nomad_model-remove_model_data}{\code{nomad_model_$remove_model_data()}}
 \item \href{#method-nomad_model-get_model}{\code{nomad_model_$get_model()}}
 \item \href{#method-nomad_model-get_data_name}{\code{nomad_model_$get_data_name()}}
+\item \href{#method-nomad_model-get_data_ref}{\code{nomad_model_$get_data_ref()}}
+\item \href{#method-nomad_model-get_data_fields}{\code{nomad_model_$get_data_fields()}}
 \item \href{#method-nomad_model-get_check_res}{\code{nomad_model_$get_check_res()}}
 \item \href{#method-nomad_model-set_check_res}{\code{nomad_model_$set_check_res()}}
+\item \href{#method-nomad_model-set_model_data_ref}{\code{nomad_model_$set_model_data_ref()}}
 \item \href{#method-nomad_model-get_model_name}{\code{nomad_model_$get_model_name()}}
 }
 }
@@ -26,7 +29,7 @@ A nomad mobility model
 \subsection{Method \code{new()}}{
 Create a new \code{nomad} mobility model
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$new(model, data_name)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$new(model, data_name, data_ref = NULL, data_fields = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -35,6 +38,10 @@ Create a new \code{nomad} mobility model
 \item{\code{model}}{\code{\link[mobility:mobility]{mobility::mobility()}} model}
 
 \item{\code{data_name}}{The model's name to link to \code{nomad::mobility_db}}
+
+\item{\code{data_ref}}{Optional internal reference to shared package model data.}
+
+\item{\code{data_fields}}{Optional character vector of shared data fields.}
 }
 \if{html}{\out{</div>}}
 }
@@ -51,7 +58,7 @@ connectivity matrix based on estimated parameters.
 \if{latex}{\out{\hypertarget{method-nomad_model-predict}{}}}
 \subsection{Method \code{predict()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$predict(newdata, nsim, seed, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$predict(newdata = NULL, nsim = 1, seed = NULL, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -114,6 +121,7 @@ Remove data model was trained on}
   D = FALSE,
   N_orig = FALSE,
   N_dest = FALSE,
+  S = FALSE,
   save_model_checks = FALSE,
   ...
 )}\if{html}{\out{</div>}}
@@ -130,6 +138,8 @@ Remove data model was trained on}
 
 \item{\code{N_dest}}{Population Destination Data}
 
+\item{\code{S}}{Radiation intervening opportunity matrix}
+
 \item{\code{save_model_checks}}{Logical to save model check results. Default = FALSE}
 
 \item{\code{...}}{further arguments passed to \code{\link[=png]{png()}} for saving model check plot
@@ -143,9 +153,17 @@ Get model object}
 \if{latex}{\out{\hypertarget{method-nomad_model-get_model}{}}}
 \subsection{Method \code{get_model()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$get_model()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$get_model(hydrate = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{hydrate}}{If \code{TRUE}, attach any shared package data referenced by
+this model before returning it.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 Underlying \code{\link[mobility:mobility]{mobility::mobility()}} model
 Get data name
@@ -161,6 +179,32 @@ Get data name
 
 \subsection{Returns}{
 Data name
+Get shared model data reference
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-nomad_model-get_data_ref"></a>}}
+\if{latex}{\out{\hypertarget{method-nomad_model-get_data_ref}{}}}
+\subsection{Method \code{get_data_ref()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$get_data_ref()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Shared data reference or \code{NULL}
+Get shared model data fields
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-nomad_model-get_data_fields"></a>}}
+\if{latex}{\out{\hypertarget{method-nomad_model-get_data_fields}{}}}
+\subsection{Method \code{get_data_fields()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$get_data_fields()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Character vector of shared data fields or \code{NULL}
 Get check results
 }
 }
@@ -189,6 +233,25 @@ Set check results
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{check_res}}{Results of model check
+Set shared model data reference}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-nomad_model-set_model_data_ref"></a>}}
+\if{latex}{\out{\hypertarget{method-nomad_model-set_model_data_ref}{}}}
+\subsection{Method \code{set_model_data_ref()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{nomad_model_$set_model_data_ref(data_ref = NULL, data_fields = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data_ref}}{Shared data reference}
+
+\item{\code{data_fields}}{Shared model data fields
 Get the model's name}
 }
 \if{html}{\out{</div>}}

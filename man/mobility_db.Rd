@@ -5,20 +5,24 @@
 \alias{mobility_db}
 \title{Mobility database}
 \format{
-A \code{\link[tibble:tibble]{tibble::tibble()}} of mobility metadata with 10 variables:
+A \code{\link[tibble:tibble]{tibble::tibble()}} of mobility metadata with the following fields:
 
 \code{mobility_db}:
 \itemize{
-\item{\code{name}:  }{Name of mobility data}
-\item{\code{country}:  }{ISO3C country code for where data was collected}
-\item{\code{date_start}:  }{Start date of data collection}
-\item{\code{date_end}:  }{End date of data collection}
-\item{\code{n}:  }{Number of data records}
-\item{\code{type}: }{Type of mobility data, e.g. call data records, facebook}
-\item{\code{sampling_scheme}:  }{Free text description of sample scheme}
-\item{\code{censoring}:  }{Free text description of any censoring}
-\item{\code{aggregation}:  }{Spatial scale of aggregation, e.g. admin_2}
-\item{\code{url}:  }{URL for associated publication or raw data}
+\item \code{name}: name of mobility data.
+\item \code{country}: ISO3C country code for where data was collected.
+\item \code{date_start}: start date of data collection.
+\item \code{date_end}: end date of data collection.
+\item \code{n}: number of data records.
+\item \code{type}: type of mobility data, e.g. call data records, facebook.
+\item \code{sampling_scheme}: free text description of sample scheme.
+\item \code{censoring}: free text description of any censoring.
+\item \code{aggregation}: spatial scale of aggregation, e.g. admin_2.
+\item \code{publication}: URL for associated publication or raw data.
+\item \code{has_fitted_models}: whether at least one fitted model is in \code{model_db}.
+\item \code{prediction_period_days}: interval represented by predictions; NA if unknown.
+\item \code{distance_unit}: fitted distance unit (\code{m} or \code{km}); NA if unknown.
+\item \code{provenance}: fitting recipe and supplied model attribution.
 }
 }
 \usage{

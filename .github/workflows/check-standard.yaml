@@ -1,8 +1,9 @@
 # Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
+  workflow_dispatch:
   push:
-    branches: [main, master]
+    branches: [main, master, "release/**"]
   pull_request:
     branches: [main, master]
 
@@ -19,17 +20,18 @@ jobs:
       matrix:
         config:
           - {os: macos-latest,   r: 'release'}
-#           - {os: windows-latest, r: 'release', rtools: '42'}
+          - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
+          - {os: ubuntu-latest,   r: '4.4'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -51,22 +53,14 @@ jobs:
         run : |
           brew install jags
 
-# Windows jags code from https://github.com/ropensci/jagstargets/actions/runs/4135319301/workflow
-      - name: Install most Windows system dependencies
+      - name: Install JAGS (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          pacman -Syu mingw-w64-x86_64-make --noconfirm
-          g++ --version
-          Get-Command g++ | Select-Object -ExpandProperty Definition
-          mingw32-make --version
-          Get-Command mingw32-make | Select-Object -ExpandProperty Definition
-          (New-Object System.Net.WebClient).DownloadFile('https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.0.exe', 'C:\JAGS-4.3.0.exe')
-        shell: powershell
-
-      - name: Install JAGS (windows-latest)
-        if: runner.os == 'Windows'
-        run: C:\JAGS-4.3.0.exe /S
-        shell: cmd
+          $installer = Join-Path $env:RUNNER_TEMP 'JAGS.exe'
+          Invoke-WebRequest 'https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.2.exe/download' -OutFile $installer
+          $process = Start-Process $installer -ArgumentList '/S' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'JAGS installation failed' }
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -76,3 +70,4 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+          args: 'c("--no-manual")'

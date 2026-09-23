@@ -1,9 +1,22 @@
 url: https://ojwatson.github.io/nomad/
 
 template:
-  params:
-    theme: flatly
-    bootswatch: flatly
+  bootstrap: 5
+  bootswatch: flatly
+
+articles:
+- title: Get started
+  navbar: Get started
+  contents:
+  - introduction
+  - model
+  - selecting-a-model
+  - outbreak-model-selection
+- title: Package design
+  navbar: Package design
+  contents:
+  - data
+  - structure
 
 reference:
 - title: "Nomad model"
@@ -14,21 +27,29 @@ reference:
   desc: "Predicting from, summarizing, and checking mobility model objects"
 - contents:
   - print.nomad_model
+  - plot.nomad_model
   - summary.nomad_model
   - predict.nomad_model
   - residuals.nomad_model
   - check
+  - mobility_metrics
+  - uncertainty_summary
+  - uncertainty_matrices
+  - plot_uncertainty
+  - compare_models
+  - nomad_ensemble
+  - predict.nomad_ensemble
+  - prediction_difference
+  - plot_prediction_difference
 - title: "Data Objects"
   desc: "Mobility database and Mobility Models database"
 - contents:
   - mobility_db
   - model_db
-- title: "Database Management"
-  desc: "Functions to ease adding to internal Data Objects"
-- contents:
-  - add_model_to_db
-  - rebuild_model_db
-  - remake_model_in_db
+  - mobility_table
+  - model_table
+  - model_profile
+  - model_weights
 - title: "Population Helpers"
   desc: "Functions to fetch population sizes"
 - contents:
