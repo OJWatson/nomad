@@ -48,7 +48,7 @@ will transfer successfully to another setting.
 
 ```{r}
 candidates <- model_table(data_name = "zmb_fb_2025")
-candidates[, c("name", "mobility_model", "RMSE", "DIC", "max_rhat", "supports_newdata")]
+candidates[, c("name", "mobility_model", "RMSE", "DIC", "max_rhat", "min_n_eff", "supports_newdata")]
 ```
 
 Inspect `max_rhat` alongside fit error. A high stored R-hat raises a convergence
@@ -71,13 +71,15 @@ all differences between the source setting and your application.
 
 ## Inspect the source and diagnostics
 
-We will compare exponential gravity with exponential departure-diffusion, both
-fitted to the same Facebook dataset. The profile reports fitted distance units,
+We will compare normalised exponential gravity with exponential departure-diffusion, both
+fitted to the same Facebook dataset. These examples use fits with stored maximum
+R-hat of 1.01 and minimum effective sample sizes above 600; those summaries inform
+the choice without establishing complete convergence. The profile reports fitted distance units,
 population scale and prediction period; the saved plot shows agreement with the
 original observations even though private trip data are not distributed.
 
 ```{r}
-gravity <- model_db$zmb_fb_2025_mod_grav_exp
+gravity <- model_db$zmb_fb_2025_mod_grav_exp_norm
 departure <- model_db$zmb_fb_2025_mod_dd_exp
 model_profile(gravity)
 check(gravity, plots = FALSE)

@@ -3,11 +3,15 @@
 on:
   workflow_dispatch:
   push:
-    branches: [main, master, "release/**"]
+    branches: [main, master]
   pull_request:
     branches: [main, master]
 
 name: R-CMD-check
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   R-CMD-check:
@@ -58,7 +62,10 @@ jobs:
         shell: pwsh
         run: |
           $installer = Join-Path $env:RUNNER_TEMP 'JAGS.exe'
-          Invoke-WebRequest 'https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.2.exe/download' -OutFile $installer
+          curl.exe --fail --location --retry 3 'https://downloads.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.3.2.exe' --output $installer
+          if ($LASTEXITCODE -ne 0) { throw 'JAGS download failed' }
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne '197f3b32f35462fdbbb566035f459bade6c61207fb2bada265be1504c0fa414f') { throw 'JAGS installer checksum mismatch' }
           $process = Start-Process $installer -ArgumentList '/S' -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw 'JAGS installation failed' }
 

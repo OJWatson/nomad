@@ -77,13 +77,16 @@ model under each matrix, and score the resulting spatial outbreak pattern.
 
 ## Mobility Candidates From `nomad`
 
-The candidate mobility matrices come from actual package models. The Facebook
+The candidate mobility matrices come from actual package models. We use
+normalised exponential gravity and exponential departure-diffusion from the same
+21-day dataset; their stored diagnostics are more suitable for a worked example
+than alternatives with pronounced mixing problems. The Facebook
 gravity model is the known data-generating model for this controlled example.
 The Facebook departure-diffusion model is the alternative, and the ensemble weights
 create intermediate candidates.
 
 ```{r}
-fb_model <- model_db$zmb_fb_2025_mod_grav_exp
+fb_model <- model_db$zmb_fb_2025_mod_grav_exp_norm
 cdr_model <- model_db$zmb_fb_2025_mod_dd_exp
 
 fb_flows <- predict(fb_model, newdata = newdata, unit = "km")

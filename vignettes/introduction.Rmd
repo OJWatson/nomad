@@ -52,7 +52,7 @@ The model profile summarises the scale and period of the source data. This is
 the quickest way to check whether a model is plausible for a prediction task.
 
 ```{r}
-model <- model_db$zmb_fb_2025_mod_grav_exp
+model <- model_db$zmb_fb_2025_mod_grav_exp_norm
 model_profile(model)
 ```
 

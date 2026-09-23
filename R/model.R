@@ -29,7 +29,7 @@ nomad_model_ <- R6::R6Class(
       assert_optional_string(data_ref)
       assert_optional_character(data_fields)
 
-      # TODO Check on data name either NULL or in mobility_db
+      # Dataset membership is checked when registering the model.
 
       # assign objects to internal
       private$model <- model

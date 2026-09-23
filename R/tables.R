@@ -137,7 +137,7 @@ fit_diagnostics <- function(model) {
     x <- model$summary
     if (is.null(x) || !field %in% colnames(x)) return(NA_real_)
     values <- x[, field]
-    values <- values[is.finite(values)]
+    values <- values[!is.na(values)]
     if (!length(values)) NA_real_ else fun(values)
   }
   rhat <- statistic("Rhat", max)
