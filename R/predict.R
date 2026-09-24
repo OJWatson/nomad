@@ -133,7 +133,7 @@ predict.nomad_model <- function(object,
                                 ...) {
 
   if (!is.numeric(nsim) || length(nsim) != 1L || !is.finite(nsim) ||
-        nsim < 1 || nsim != as.integer(nsim)) {
+        nsim < 1 || nsim > .Machine$integer.max || nsim != as.integer(nsim)) {
     stop("nsim must be a positive integer", call. = FALSE)
   }
   requested <- requested_duration_days(duration, date_start, date_end)
@@ -145,6 +145,11 @@ predict.nomad_model <- function(object,
   newdata <- prepare_prediction_data(object, newdata, unit)
   order <- check_model_capabilities(object, fitted, newdata, nsim)
   check_prediction_data(object, newdata, locations, model_distance_unit(object))
+  # mobility needs an existing RNG state to honour its seed argument.
+  if (!is.null(seed) && !exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+    set.seed(seed)
+    on.exit(rm(".Random.seed", envir = .GlobalEnv), add = TRUE)
+  }
   if (fitted$model == "radiation") {
     out <- mobility::predict(fitted, nsim = nsim, seed = seed, ...)
     if (!is.null(order)) out <- out[order[[1]], order[[2]], drop = FALSE]

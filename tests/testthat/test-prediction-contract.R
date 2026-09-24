@@ -56,3 +56,27 @@ test_that("intervening population matches a hand-calculated tied-distance case",
   actual <- suppressWarnings(predict(mod, newdata = dat))
   expect_equal(as.numeric(actual), as.numeric(expected))
 })
+
+test_that("seeded prediction works before RNG initialisation and preserves its state", {
+  original <- get0(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  on.exit({
+    if (is.null(original)) {
+      if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+        rm(".Random.seed", envir = .GlobalEnv)
+      }
+    } else {
+      assign(".Random.seed", original, envir = .GlobalEnv)
+    }
+  })
+  mod <- model_db$com_fb_2025_mod_grav_exp
+  if (!is.null(original)) rm(".Random.seed", envir = .GlobalEnv)
+  first <- predict(mod, nsim = 3, seed = 42)
+  expect_equal(dim(first), c(3L, 3L, 3L))
+  expect_false(exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE))
+  expect_equal(mod$predict(nsim = 3, seed = 42), first)
+  set.seed(123)
+  before <- get(".Random.seed", envir = .GlobalEnv)
+  expect_equal(predict(mod, nsim = 3, seed = 42), first)
+  expect_equal(get(".Random.seed", envir = .GlobalEnv), before)
+  expect_error(predict(mod, nsim = 1e20), "positive integer")
+})

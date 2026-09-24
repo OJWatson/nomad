@@ -86,23 +86,23 @@ The Facebook departure-diffusion model is the alternative, and the ensemble weig
 create intermediate candidates.
 
 ```{r}
-fb_model <- model_db$zmb_fb_2025_mod_grav_exp_norm
-cdr_model <- model_db$zmb_fb_2025_mod_dd_exp
+gravity_model <- model_db$zmb_fb_2025_mod_grav_exp_norm
+diffusion_model <- model_db$zmb_fb_2025_mod_dd_exp
 
-fb_flows <- predict(fb_model, newdata = newdata, unit = "km")
-cdr_flows <- predict(cdr_model, newdata = newdata, unit = "km")
+gravity_flows <- predict(gravity_model, newdata = newdata, unit = "km")
+diffusion_flows <- predict(diffusion_model, newdata = newdata, unit = "km")
 
-candidate_prediction <- function(weight_facebook) {
-  if (weight_facebook == 0) {
-    return(predict(cdr_model, newdata = newdata, unit = "km"))
+candidate_prediction <- function(weight_gravity) {
+  if (weight_gravity == 0) {
+    return(predict(diffusion_model, newdata = newdata, unit = "km"))
   }
-  if (weight_facebook == 1) {
-    return(predict(fb_model, newdata = newdata, unit = "km"))
+  if (weight_gravity == 1) {
+    return(predict(gravity_model, newdata = newdata, unit = "km"))
   }
 
   ensemble <- nomad_ensemble(
-    list(cdr = cdr_model, facebook = fb_model),
-    weights = c(cdr = 1 - weight_facebook, facebook = weight_facebook)
+    list(diffusion = diffusion_model, gravity = gravity_model),
+    weights = c(diffusion = 1 - weight_gravity, gravity = weight_gravity)
   )
   predict(ensemble, newdata = newdata, unit = "km")
 }
@@ -207,7 +207,7 @@ are cumulative infections from this stochastic realization. Candidate models wil
 be compared with these counts using independent simulation averages.
 
 ```{r}
-truth_coupling <- flow_to_coupling(fb_flows)
+truth_coupling <- flow_to_coupling(gravity_flows)
 set.seed(99)
 observed_cases <- simulate_sir(truth_coupling, N)
 outbreak <- data.frame(
@@ -260,22 +260,22 @@ log_rmse <- function(observed, predicted) {
   sqrt(mean((log1p(observed) - log1p(predicted))^2))
 }
 
-score_candidate <- function(weight_facebook) {
-  flows <- candidate_prediction(weight_facebook)
+score_candidate <- function(weight_gravity) {
+  flows <- candidate_prediction(weight_gravity)
   P <- flow_to_coupling(flows)
   predicted_infections <- mean_sir(
     P,
     N,
     nsim = 80,
-    seed = 1000 + round(100 * weight_facebook)
+    seed = 1000 + round(100 * weight_gravity)
   )
   predicted_cases <- predicted_infections
 
   list(
     prediction = predicted_cases,
     score = data.frame(
-      candidate = sprintf("%s%% Facebook gravity", round(100 * weight_facebook)),
-      weight_facebook = weight_facebook,
+      candidate = sprintf("%s%% Facebook gravity", round(100 * weight_gravity)),
+      weight_gravity = weight_gravity,
       log_RMSE = log_rmse(observed_cases, predicted_cases),
       total_predicted_cases = sum(predicted_cases)
     )
@@ -309,15 +309,15 @@ prediction_by_weight <- setNames(
   weights
 )
 
-best_ensemble_weight <- scores$weight_facebook[
-  scores$weight_facebook > 0 & scores$weight_facebook < 1
+best_ensemble_weight <- scores$weight_gravity[
+  scores$weight_gravity > 0 & scores$weight_gravity < 1
 ][1]
 
 comparison <- data.frame(
   region = names(observed_cases),
   observed = observed_cases,
-  facebook_gravity = round(prediction_by_weight[["1"]]),
-  cdr_departure_diffusion = round(prediction_by_weight[["0"]]),
+  gravity = round(prediction_by_weight[["1"]]),
+  departure_diffusion = round(prediction_by_weight[["0"]]),
   best_ensemble = round(prediction_by_weight[[as.character(best_ensemble_weight)]])
 )
 

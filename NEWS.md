@@ -12,6 +12,8 @@
 * Repairs departure-diffusion radiation prediction for new regions and unifies
   S3 and R6 prediction. Basic/finite radiation supports its original setting;
   unsupported direct/ensemble requests now produce explanatory errors.
+* Makes seeded prediction reproducible in a fresh R session without changing
+  the caller's random-number state.
 * Matches named weights and target regions, rejects invalid weights and missing
   requested fit metrics, and handles zero-error weights and zero baselines.
   Scripts relying on silent equal-weight fallback must choose weights explicitly.
