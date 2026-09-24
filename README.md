@@ -20,8 +20,9 @@ plots are bundled for offline use.
 
 ## Installation
 
-Install JAGS for the underlying `mobility` dependency, then install from
-GitHub:
+Install [JAGS 4.x](https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/)
+for the underlying `mobility` dependency, then install from GitHub. On macOS,
+use the official JAGS 4.3.2 installer; the current rjags package requires JAGS 4:
 
 ``` r
 remotes::install_github("OJWatson/nomad", upgrade = FALSE)
