@@ -4,7 +4,18 @@
 \alias{predict.nomad_model}
 \title{Prediction and simulation method for 'nomad_model' class}
 \usage{
-\method{predict}{nomad_model}(object, newdata = NULL, nsim = 1, seed = NULL, unit = NULL, ...)
+\method{predict}{nomad_model}(
+  object,
+  newdata = NULL,
+  nsim = 1,
+  seed = NULL,
+  unit = NULL,
+  locations = NULL,
+  duration = NULL,
+  date_start = NULL,
+  date_end = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{a \code{\link[=nomad_model]{nomad_model()}} object containing the fitted mobility
@@ -22,9 +33,21 @@ model and its associated meta data}
 
 \item{seed}{optional integer specifying the call to \code{set.seed} prior to model simulation (default = \code{NULL})}
 
-\item{unit}{The unit of distance associated with the x and y coordinates.
-Default = \code{NULL}, which assumes the provided coordinates are longitude (x)
-and latitiude (y).}
+\item{unit}{Distance unit of \code{newdata$D}: \code{"m"} or \code{"km"}. Distances are
+converted to the fitted units. With \code{NULL}, supply distances already in
+the model's units, shown by \code{\link[=model_profile]{model_profile()}}.}
+
+\item{locations}{Optional locations used for prediction. If supplied as an
+\code{sf} object or a data frame/matrix with longitude and latitude columns,
+\code{nomad} will warn when locations cross international borders or do not
+match the source country for the fitted model.}
+
+\item{duration}{Optional requested prediction duration, in days. If supplied,
+predictions are scaled from the fitted model source duration to this
+duration.}
+
+\item{date_start, date_end}{Optional requested prediction period. Used to
+calculate \code{duration} when \code{duration} is not supplied.}
 
 \item{...}{further arguments passed to or from other methods}
 }
@@ -42,19 +65,24 @@ using the mean point estimate of parameter values. If \code{nsim > 1}
 then an array that contains \code{nsim} number of simulated replications
 is returned based on the posterior distributions of each parameter.
 
-TODO: Warnings are not currently implemented (Milestone 2)
-
 Warnings will be shown if the \code{newdata} provided is unlikely to be well
-predicted by the model. This will happen under two circumstances.
+predicted by the model. These checks are advisory and are intended to help
+users notice mismatches before using predictions in downstream analyses.
+This can happen under several circumstances.
 \enumerate{
 \item If the coordinates provided are at a spatial scale that is unsuitable
 given the spatial scale that the model was fit against. For example, if the
 model was fit using data collecting mobility between locations that are
 100s km apart on average but the coordinates are 1km apart on average.
+\item If the supplied population or region count is far from the fitted source
+data.
 \item If the coordinates provided span international borders. Currently, there
 are no models available in \code{nomad} that were fit using mobility data that
 includes international movements. As a result, any predictions made for
 international locations may poorly capture international mobility.
+\item If requested prediction dates fall outside the fitted source period, or
+an unscaled prediction has an unknown source period. Scaling an unknown
+period is an error. Basic/finite radiation accepts only its original setting.
 }
 }
 \examples{

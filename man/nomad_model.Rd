@@ -4,12 +4,17 @@
 \alias{nomad_model}
 \title{Create nomad_model}
 \usage{
-nomad_model(model, data_name)
+nomad_model(model, data_name, data_ref = NULL, data_fields = NULL)
 }
 \arguments{
 \item{model}{\code{\link[mobility:mobility]{mobility::mobility()}} model}
 
 \item{data_name}{The model's name to link to \code{nomad::mobility_db}}
+
+\item{data_ref}{Optional internal reference to shared package model data.}
+
+\item{data_fields}{Optional character vector of shared data fields to attach
+when the model is hydrated.}
 }
 \value{
 A new \code{nomad_model} object.

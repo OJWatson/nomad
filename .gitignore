@@ -9,3 +9,9 @@ analysis
 /doc/
 /Meta/
 data-raw/models/zmb_fb_2020/mod_exp_FB.rds
+data-raw/models/*/M.rds
+data-raw/models/*/M_fb.csv
+pkgdown
+
+/nomad_*.tar.gz
+/nomad*.Rcheck/

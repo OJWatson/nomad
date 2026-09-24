@@ -1,13 +1,13 @@
 Package: nomad
-Title: Mobility modelling for infetious disease epidemiology
-Version: 0.1.0
+Title: Mobility Modelling for Infectious Disease Epidemiology
+Version: 0.2.0
 Authors@R: 
     c(person(given = "OJ",
              family = "Watson",
              role = c("aut", "cre"),
              email = "oj.watson@hotmail.co.uk",
              comment = c(ORCID = "0000-0003-2374-0741")))
-Description: nomad is an R package for simulating mobility data primarily for
+Description: Simulates mobility data primarily for
   infectious disease epidemiology and in sub-Saharan contexts. The package 
   provides a range of mobility models that allow users to simulate mobility
   matrices, either using pre-trained models or by allowing users to provide
@@ -15,28 +15,30 @@ Description: nomad is an R package for simulating mobility data primarily for
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
 Suggests:
     knitr,
     rmarkdown,
-    testthat,
+    testthat (>= 3.1.7),
     remotes,
-    DT,
-    tidyverse, 
+    ggplot2,
     reactable,
     htmltools,
     rnaturalearth,
-    rnaturalearthhires,
-    leaflet
+    leaflet,
+    usethis
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
 Depends: 
-    R (>= 3.50)
-RoxygenNote: 7.2.3
+    R (>= 4.4.0)
+RoxygenNote: 7.3.3
 Imports: 
+    cli,
     crayon,
     dplyr,
     grid,
+    htmlwidgets,
     jsonlite,
     magrittr,
     methods,
@@ -46,8 +48,6 @@ Imports:
     rlang,
     sf,
     terra,
-    tibble,
-    usethis
+    tibble
 Remotes:
-    COVID-19-Mobility-Data-Network/mobility,
-    ropensci/rnaturalearthhires  
+    COVID-19-Mobility-Data-Network/mobility@fc53d93280aab8bddb82d83d6c7bbb6aa6506c59

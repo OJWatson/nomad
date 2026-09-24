@@ -10,9 +10,10 @@ test_that("assert_custom_class working correctly", {
 #------------------------------------------------
 test_that("assert_string working correctly", {
   expect_true(assert_string("foo"))
-  expect_true(assert_string(c("foo", "bar")))
 
   expect_error(assert_string(NULL))
   expect_error(assert_string(5))
   expect_error(assert_string(1:5))
+  expect_error(assert_string(c("foo", "bar")))
+  expect_error(assert_string(NA_character_))
 })

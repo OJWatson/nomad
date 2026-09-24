@@ -1,123 +1,85 @@
 ---
-output:
-  rmarkdown::github_document
+output: rmarkdown::github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-"
-)
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 <!-- badges: start -->
-[![R build status](https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml.yaml)
-[![CodeFactor](https://www.codefactor.io/repository/github/OJWatson/nomad/badge)](https://www.codefactor.io/repository/github/OJWatson/nomad)
-[![codecov.io](https://codecov.io/github/OJWatson/nomad/coverage.svg?branch=main)](https://codecov.io/github/OJWatson/nomad?branch=main)
-
+[![R build status](https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml)
+[![Coverage](https://codecov.io/gh/OJWatson/nomad/branch/main/graph/badge.svg)](https://app.codecov.io/gh/OJWatson/nomad)
 <!-- badges: end -->
 
-## <img src='man/figures/logo.png' style="height:75px;"/>
+<img src="man/figures/logo.png" alt="nomad logo" height="75" />
 
-##  Mobility modelling for infetious disease epidemiology
+## Mobility modelling for infectious disease epidemiology
 
-### Installation
+`nomad` provides fitted mobility models, source-data profiles, prediction checks,
+uncertainty summaries and ensembles. The database includes 612 supplied Facebook
+fits across 51 country/territory datasets and two original Zambia fits. Models,
+public covariates and diagnostic plots are bundled for offline use.
 
-To install `nomad`:
+## Installation
+
+Install [JAGS 4.x](https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/)
+for the underlying `mobility` dependency, then install from GitHub. On macOS,
+use the official JAGS 4.3.2 installer; the current rjags package requires JAGS 4:
 
 ```r
 remotes::install_github("OJWatson/nomad", upgrade = FALSE)
 ```
 
-### Demonstration
+This is a GitHub distribution; the complete model payload makes the source
+package approximately 156 MiB. CRAN distribution is a separate future task.
 
-Most users will come to use `nomad` with a shape file for which they want
-mobility predictions.
+## A first prediction
 
-```{r, eval=TRUE, echo=TRUE, include = TRUE, results="hide", message=FALSE, warning=FALSE}
-library(tidyverse)
-# Get our shape object. Here let's use the MAP Zambia Admin 2
-zmbsf <- malariaAtlas::getShp(ISO = "ZMB", admin_level = c("admin2")) %>% 
-  sf::st_as_sf()
+Start by finding a dataset with fitted models. Check its prediction period and
+distance units before using it in a downstream analysis.
+
+```{r}
+library(nomad)
+mobility_table(country = "COM")[, c(
+  "name", "has_fitted_models", "prediction_period_days", "distance_unit"
+)]
+model <- model_db$com_fb_2025_mod_grav_exp
+M <- predict(model, duration = 21)
+round(M)
 ```
 
-For our given shape file, we need to fetch population sizes, which `nomad`
-makes easy by wrapping WorldPop
+Rows are origins and columns are destinations; values are predicted trips over
+21 days. For new regions, supply a named distance matrix and matching named
+populations, declaring the distance units explicitly:
 
-```{r, eval=TRUE, echo=TRUE, include = TRUE, results="hide", message=FALSE, warning=FALSE}
-# Use the inbuilt population fetch functions in nomad
-pop <- nomad::get_pop("ZMB", 2020)
+```r
+predict(model, newdata = list(D = distances, N = populations), unit = "m", duration = 21)
 ```
 
-Next we need to unpack this to create population sizes for our regions
+Transferable models support new regions. Basic/finite radiation models support
+their exact original setting only; unsupported requests fail with an explanation.
+Original Zambia CDR/Facebook prediction periods remain unknown, so those models
+can return unscaled predictions with a warning but cannot convert durations.
 
-```{r, eval=TRUE, echo=TRUE, include = TRUE, results="hide", message=FALSE, warning=FALSE}
-# And unpack the population based on our shape file
-pop_extract <- nomad::unpack_pop(zmbsf, pop)
+The [guided introduction](https://ojwatson.github.io/nomad/articles/introduction.html)
+explains inputs and outputs. The
+[model catalogue](https://ojwatson.github.io/nomad/articles/model.html) includes
+source locations, availability and diagnostics. The
+[selection walkthrough](https://ojwatson.github.io/nomad/articles/selecting-a-model.html)
+covers uncertainty, ensembles and `compare_models()`, an interactive weight slider.
+The outbreak example holds transmission assumptions fixed while comparing mobility.
 
-# Calculate our population per region
-sum <- pop_extract %>%
-  dplyr::select(iso, name_2, pop) %>%
-  tidyr::unnest(cols = c(pop)) %>%
-  tidyr::drop_na() %>%
-  group_by(name_2) %>% 
-  dplyr::summarise(pop = round(sum(pop)))
-```
-From here we can create the distance matrix and the population sizes
+## Provenance and maintenance
 
-```{r, eval=TRUE, echo=TRUE, include = TRUE, results="hide", message=FALSE, warning=FALSE}
-# Now we can create our vector of population sizes needed to predict
-N <- sum %>% pull(pop) %>% setNames(sum$name_2)
-N <- N[order(names(N))]
+JHU supplied the new Facebook data/model archives. The fitting recipes are in
+`data-raw/functions/facebook_models.R` and the country scripts under
+`data-raw/models`. Imports preserve the supplied parameters. Private Facebook
+trip matrices are excluded; saved diagnostics remain available.
 
-# And also create our distance matrix of population sizes needed to predict
-# N.B The coversion from degrees to metres
-centroids <- sf::st_centroid(zmbsf) %>% sf::st_coordinates()
-D <- mobility::get_distance_matrix(
-  x = centroids[,"X"], 
-  y = centroids[,"Y"], 
-  id = zmbsf$name_2)*113.5*1000 
-```
+Kenya 2009, Namibia 2014 and Burkina Faso 2016 CDR datasets remain catalogued with
+`has_fitted_models = FALSE` until their data or fitted models become available.
 
-Now we can use a selected model from the `nomad` model database:
-
-```{r, eval=TRUE, echo=TRUE, include = TRUE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, dpi=600}
-# Having selected our most suitable model having looked at the model database
-# https://ojwatson.github.io/nomad/articles/model.html
-mod <- nomad::model_db$zmb_cdr_2020_mod_dd_exp
-
-# Predict mobility model using new data
-M_hat <- predict(object=mod, newdata=list(D = D, N = N))
-
-# And now we can plot our predictions as needed for our own work
-ggplot(data=reshape2::melt(M_hat)) +
-  geom_tile(aes(x=factor(destination),
-                y=factor(origin),
-                fill=log(value))) +
-  xlab('Destination') + ylab("Origin") +
-  theme_bw() + theme(axis.text.x=element_text(size=8),
-                     axis.text.y=element_text(size=8),
-                     axis.title.x=element_text(size=10, margin = margin(t = 15)),
-                     axis.title.y=element_text(size=10, margin = margin(r = 15)),
-                     legend.position='bottom') +
-  viridis::scale_fill_viridis(option='inferno', 
-                              direction=1) +
-  guides(fill=guide_colorbar(title='log(Estimated number of trips)',
-                             title.position='top',
-                             label.theme=element_text(size=9),
-                             barwidth=20,
-                             barheight=0.5,
-                             frame.colour='black',
-                             ticks=TRUE)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-```
-
-#### Licenses
-
-Code: [MIT](http://opensource.org/licenses/MIT) year: `r format(Sys.Date(), "%Y")`, copyright holder: OJ Watson
-
-Data: [CC-0](http://creativecommons.org/publicdomain/zero/1.0/) attribution requested in reuse
-
+Code: [MIT](https://opensource.org/licenses/MIT), copyright OJ Watson.
+Data: [CC-0](https://creativecommons.org/publicdomain/zero/1.0/), attribution requested in reuse.
