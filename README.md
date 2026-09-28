@@ -136,8 +136,9 @@ ggplot2::ggplot(flows, ggplot2::aes(destination, origin, fill = trips)) +
     example](https://ojwatson.github.io/nomad/articles/outbreak-model-selection.html):
     see how mobility assumptions affect a spatial epidemic.
 
-### Licenses
+#### Licenses
 
 Code: [MIT](https://opensource.org/licenses/MIT), copyright OJ Watson.
+
 Data: [CC-0](https://creativecommons.org/publicdomain/zero/1.0/),
 attribution requested in reuse.

@@ -6,6 +6,8 @@ body {
 body > .container { padding-top: 1.5rem; }
 @media (min-width: 1200px) {
   .container { max-width: 1170px; }
+  .container > .row { justify-content: space-evenly; }
+  .container > .row > aside { margin-left: 0; }
 }
 h1 { font-size: 2.4rem; }
 h2 { font-size: 1.9rem; }
@@ -27,3 +29,4 @@ details.nomad-warnings { border-left: 3px solid #d49b32; }
 body:has(#catalogue-page) #main { width: 100%; max-width: none; }
 body:has(#catalogue-page) aside { display: none; }
 .catalogue-plot { width: 100%; height: auto; }
+body:has(#catalogue-page) .leaflet-container { background: #e8f0f3; }

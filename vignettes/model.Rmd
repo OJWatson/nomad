@@ -95,7 +95,11 @@ coverage$popup <- paste0(
 )
 palette <- leaflet::colorBin("YlOrBr", domain = coverage$log_records, bins = 5)
 map <- leaflet::leaflet(coverage, width = "100%", height = 550)
-map <- leaflet::addTiles(map)
+map <- leaflet::addMapPane(map, "land", zIndex = 200)
+map <- leaflet::addPolygons(map, data = world,
+  color = "#bdc8cc", weight = 0.5, fillColor = "#f7f7f2", fillOpacity = 1,
+  options = leaflet::pathOptions(pane = "land", interactive = FALSE,
+    attribution = 'Boundaries: <a href="https://www.naturalearthdata.com/">Natural Earth</a>'))
 for (source in c("facebook", "call data record")) {
   layer <- coverage[coverage$type == source, ]
   group <- if (source == "facebook") "Facebook" else "Call data records"
