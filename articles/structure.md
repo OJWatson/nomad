@@ -1,0 +1,99 @@
+# Package Structure
+
+`nomad` is built around a small number of linked objects and workflows.
+The package stores fitted mobility models, describes the data used to
+fit them, and provides helpers for deciding whether a model is suitable
+for a new prediction task.
+
+## Core Objects
+
+The central object is a `nomad_model`, an R6 wrapper around a
+[`mobility::mobility()`](https://rdrr.io/pkg/mobility/man/mobility.html)
+model. It keeps the fitted model interface familiar while adding
+package-specific metadata, checks, and printing.
+
+The package data objects are:
+
+1.  `model_db`: a named list of fitted `nomad_model` objects.
+2.  `mobility_db`: a table describing the source mobility datasets.
+
+The link between them is the source data name. For example,
+`zmb_fb_2020_mod_grav_exp` is a model fitted to the `zmb_fb_2020`
+mobility dataset.
+
+## User Workflow
+
+A typical analysis has five steps:
+
+1.  Search
+    [`mobility_table()`](https://ojwatson.github.io/nomad/reference/mobility_table.md)
+    and
+    [`model_table()`](https://ojwatson.github.io/nomad/reference/model_table.md)
+    for relevant source data and fitted models.
+2.  Inspect the source scale with
+    [`model_profile()`](https://ojwatson.github.io/nomad/reference/model_profile.md).
+3.  Prepare prediction data: a distance matrix and population vector.
+4.  Predict a mobility matrix with
+    [`predict()`](https://rdrr.io/r/stats/predict.html).
+5.  Use warnings, uncertainty summaries, model differences, or ensembles
+    to test whether the selected model is appropriate.
+
+Population helpers such as
+[`get_pop()`](https://ojwatson.github.io/nomad/reference/get_pop.md) and
+[`unpack_pop()`](https://ojwatson.github.io/nomad/reference/unpack_pop.md)
+support the data preparation step, but users can also supply their own
+population vectors and distance matrices directly.
+
+## From stored fit to prediction
+
+The database includes 612 Facebook fits across 51 country/territory
+datasets and two original Zambia fits. Each dataset can have multiple
+model families. `has_fitted_models` distinguishes usable datasets from
+metadata-only entries.
+
+Private Facebook trip matrices are removed before packaging. Shared
+distance and population covariates live once per dataset in
+`inst/extdata/model_data`; `get_model()` restores those covariates when
+a method needs them. Saved fit statistics and plots allow inspection
+without distributing private observations.
+
+Both `predict(model)` and `model$predict()` follow the same path:
+validate and align inputs, convert declared distance units, check model
+capabilities, predict, and apply a requested duration. Source dates
+describe data collection; the separate prediction period controls
+conversion. Unknown periods cannot be scaled.
+
+Transferable models can accept new regions and populations. Basic/finite
+radiation instead retains a matrix for its exact source setting. Its
+capability check runs before the underlying mobility method, including
+in an ensemble, to prevent an original matrix being mistaken for
+predictions for new regions.
+
+Ensembles align component predictions by target-region names. This
+compares the requested output settings, not the regions each model was
+trained on. Periods must also agree, or be convertible to a common
+requested duration. Named weights are matched to models rather than
+assigned by table position.
+
+## Package Design Notes
+
+The package deliberately keeps modelling objects as plain R objects.
+This makes them easy to use in scripts, reports, and downstream disease
+models without requiring an app framework.
+
+The vignettes now have distinct roles:
+
+1.  The introduction gives the shortest complete user workflow.
+2.  The models and mobility data vignette describes available source
+    data and fitted models.
+3.  The selecting-a-model vignette focuses on scale checks, warnings,
+    uncertainty, differences, and ensembles.
+4.  The outbreak vignette shows how a fixed transmission model can be
+    used to compare candidate mobility assumptions.
+5.  The database and structure vignettes describe package design for
+    maintainers.
+
+The three older CDR catalogue entries remain future additions.
+Maintainers can add their fitted models when the inputs become
+available; the availability flag is regenerated from the model database
+rather than maintained by hand.

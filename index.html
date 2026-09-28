@@ -4,185 +4,158 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mobility modelling for infetious disease epidemiology • nomad</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
-<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="Mobility modelling for infetious disease epidemiology">
-<meta property="og:description" content="nomad is an R package for simulating mobility data primarily for infectious disease epidemiology and in sub-Saharan contexts. The package provides a range of mobility models that allow users to simulate mobility matrices, either using pre-trained models or by allowing users to provide mobility data for their context and fitting models to these data.">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Mobility Modelling for Infectious Disease Epidemiology • nomad</title>
+<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
+<meta property="og:title" content="Mobility Modelling for Infectious Disease Epidemiology">
+<meta name="description" content="Simulates mobility data primarily for infectious disease epidemiology and in sub-Saharan contexts. The package provides a range of mobility models that allow users to simulate mobility matrices, either using pre-trained models or by allowing users to provide mobility data for their context and fitting models to these data.">
+<meta property="og:description" content="Simulates mobility data primarily for infectious disease epidemiology and in sub-Saharan contexts. The package provides a range of mobility models that allow users to simulate mobility matrices, either using pre-trained models or by allowing users to provide mobility data for their context and fitting models to these data.">
 <meta property="og:image" content="https://ojwatson.github.io/nomad/logo.png">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
 </head>
-<body data-spy="scroll" data-target="#toc">
-    
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
-    <div class="container template-home">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">nomad</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
-      </span>
-    </div>
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="articles/data.html">nomad databases</a>
-    </li>
-    <li>
-      <a href="articles/introduction.html">Introduction</a>
-    </li>
-    <li>
-      <a href="articles/model.html">Models and Mobility Data</a>
-    </li>
-    <li>
-      <a href="articles/structure.html">Package Structure</a>
-    </li>
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+
+    <a class="navbar-brand me-2" href="index.html">nomad</a>
+
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Get started</h6></li>
+    <li><a class="dropdown-item" href="articles/introduction.html">Introduction</a></li>
+    <li><a class="dropdown-item" href="articles/model.html">Models and Mobility Data</a></li>
+    <li><a class="dropdown-item" href="articles/selecting-a-model.html">Selecting a mobility model</a></li>
+    <li><a class="dropdown-item" href="articles/outbreak-model-selection.html">Identifying a mobility model for an outbreak</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Package design</h6></li>
+    <li><a class="dropdown-item" href="articles/data.html">nomad databases</a></li>
+    <li><a class="dropdown-item" href="articles/structure.html">Package Structure</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/OJWatson/nomad" aria-label="GitHub repository"><span class="fa fa-github"></span></a></li>
+      </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
-
-      
-
-      </header><div class="row">
-  <div class="contents col-md-9">
-
-
-<!-- badges: end -->
+</nav><div class="container template-home">
+<div class="row">
+  <main id="main" class="col-md-9">
+<p><img src="reference/figures/logo.png" alt="nomad logo" style="height:75px; width:auto;"></p>
 <div class="section level2">
-<h2 id="section">
-<img src="reference/figures/logo.png" style="height:75px;"><a class="anchor" aria-label="anchor" href="#section"></a>
+<h2 id="mobility-modelling-for-infectious-disease-epidemiology">Mobility modelling for infectious disease epidemiology<a class="anchor" aria-label="anchor" href="#mobility-modelling-for-infectious-disease-epidemiology"></a>
 </h2>
-</div>
-<div class="section level2">
-<h2 id="mobility-modelling-for-infetious-disease-epidemiology">Mobility modelling for infetious disease epidemiology<a class="anchor" aria-label="anchor" href="#mobility-modelling-for-infetious-disease-epidemiology"></a>
-</h2>
+<p><code>nomad</code> helps you predict movement between regions using fitted mobility models. Start with your study area’s boundaries, add population sizes and distances, and use a model from the database to estimate a matrix of trips.</p>
 <div class="section level3">
 <h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h3>
-<p>To install <code>nomad</code>:</p>
+<p>Install <a href="https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/" class="external-link">JAGS 4.x</a>, then install <code>nomad</code> from GitHub. On macOS, use the official JAGS 4.3.2 installer.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"OJWatson/nomad"</span>, upgrade <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="demonstration">Demonstration<a class="anchor" aria-label="anchor" href="#demonstration"></a>
+<h3 id="from-a-shapefile-to-mobility-predictions">From a shapefile to mobility predictions<a class="anchor" aria-label="anchor" href="#from-a-shapefile-to-mobility-predictions"></a>
 </h3>
-<p>Most users will come to use <code>nomad</code> with a shape file for which they want mobility predictions.</p>
+<p>Most users will come to <code>nomad</code> with a shapefile for which they want mobility predictions. You can read your boundaries with <code>sf</code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
-<span><span class="co"># Get our shape object. Here let's use the MAP Zambia Admin 2</span></span>
-<span><span class="va">zmbsf</span> <span class="op">&lt;-</span> <span class="fu">malariaAtlas</span><span class="fu">::</span><span class="fu">getShp</span><span class="op">(</span>ISO <span class="op">=</span> <span class="st">"ZMB"</span>, admin_level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"admin2"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>For our given shape file, we need to fetch population sizes, which <code>nomad</code> makes easy by wrapping WorldPop</p>
+<code class="sourceCode R"><span><span class="va">regions</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="st">"path/to/your/regions.shp"</span><span class="op">)</span></span></code></pre></div>
+<p>For a complete example, we use Zambia’s district boundaries from the Malaria Atlas Project. This download requires the <code>malariaAtlas</code> package (<code>install.packages("malariaAtlas")</code>). If you use your own boundaries, replace <code>name_2</code> below with the column containing your unique region names.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Use the inbuilt population fetch functions in nomad</span></span>
-<span><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">::</span><span class="fu"><a href="reference/get_pop.html">get_pop</a></span><span class="op">(</span><span class="st">"ZMB"</span>, <span class="fl">2020</span><span class="op">)</span></span></code></pre></div>
-<p>Next we need to unpack this to create population sizes for our regions</p>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ojwatson.github.io/nomad/">nomad</a></span><span class="op">)</span></span>
+<span><span class="va">regions</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span></span>
+<span>  <span class="fu">malariaAtlas</span><span class="fu">::</span><span class="fu">getShp</span><span class="op">(</span>ISO <span class="op">=</span> <span class="st">"ZMB"</span>, admin_level <span class="op">=</span> <span class="st">"admin2"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>For these regions, we need population sizes. <code>nomad</code> can fetch a WorldPop raster and extract the population cells within each boundary:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># And unpack the population based on our shape file</span></span>
-<span><span class="va">pop_extract</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">::</span><span class="fu"><a href="reference/unpack_pop.html">unpack_pop</a></span><span class="op">(</span><span class="va">zmbsf</span>, <span class="va">pop</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calculate our population per region</span></span>
-<span><span class="va">sum</span> <span class="op">&lt;-</span> <span class="va">pop_extract</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">iso</span>, <span class="va">name_2</span>, <span class="va">pop</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/drop_na.html" class="external-link">drop_na</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">name_2</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>pop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>From here we can create the distance matrix and the population sizes</p>
+<code class="sourceCode R"><span><span class="va">population</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_pop.html">get_pop</a></span><span class="op">(</span><span class="st">"ZMB"</span>, <span class="fl">2020</span><span class="op">)</span></span>
+<span><span class="va">pop_extract</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/unpack_pop.html">unpack_pop</a></span><span class="op">(</span><span class="va">regions</span>, <span class="va">population</span><span class="op">)</span></span>
+<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">pop_extract</span><span class="op">$</span><span class="va">pop</span>, <span class="va">sum</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="va">regions</span><span class="op">$</span><span class="va">name_2</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Next, calculate the distances between region centroids. We find centroids in a projected coordinate system suitable for Zambia, then calculate geographic distances in metres. The matrix names and population names must identify the same regions in the same order.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Now we can create our vector of population sizes needed to predict</span></span>
-<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="va">sum</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">sum</span><span class="op">$</span><span class="va">name_2</span><span class="op">)</span></span>
-<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="va">N</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="co"># And also create our distance matrix of population sizes needed to predict</span></span>
-<span><span class="co"># N.B The coversion from degrees to metres</span></span>
-<span><span class="va">centroids</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_centroid</a></span><span class="op">(</span><span class="va">zmbsf</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_coordinates.html" class="external-link">st_coordinates</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu">mobility</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mobility/man/get_distance_matrix.html" class="external-link">get_distance_matrix</a></span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="va">centroids</span><span class="op">[</span>,<span class="st">"X"</span><span class="op">]</span>, </span>
-<span>  y <span class="op">=</span> <span class="va">centroids</span><span class="op">[</span>,<span class="st">"Y"</span><span class="op">]</span>, </span>
-<span>  id <span class="op">=</span> <span class="va">zmbsf</span><span class="op">$</span><span class="va">name_2</span><span class="op">)</span><span class="op">*</span><span class="fl">113.5</span><span class="op">*</span><span class="fl">1000</span> </span></code></pre></div>
-<p>Now we can use a selected model from the <code>nomad</code> model database:</p>
+<code class="sourceCode R"><span><span class="va">centroids</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_centroid</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html" class="external-link">st_geometry</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">regions</span>, <span class="fl">32735</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">distances</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">st_distance</a></span><span class="op">(</span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">centroids</span>, <span class="fl">4326</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">distances</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">regions</span><span class="op">)</span>,</span>
+<span>            dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">regions</span><span class="op">$</span><span class="va">name_2</span>, <span class="va">regions</span><span class="op">$</span><span class="va">name_2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Now choose a model from the <a href="https://ojwatson.github.io/nomad/articles/model.html">model catalogue</a>. For this example, we use the Zambia Facebook exponential departure-diffusion model and predict movement between our districts:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Having selected our most suitable model having looked at the model database</span></span>
-<span><span class="co"># https://ojwatson.github.io/nomad/articles/model.html</span></span>
-<span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">nomad</span><span class="fu">::</span><span class="va"><a href="reference/model_db.html">model_db</a></span><span class="op">$</span><span class="va">zmb_cdr_2020_mod_dd_exp</span></span>
+<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="va">model_db</span><span class="op">$</span><span class="va">zmb_fb_2025_mod_dd_exp</span></span>
+<span><span class="va">M_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">model</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>D <span class="op">=</span> <span class="va">D</span>, N <span class="op">=</span> <span class="va">N</span><span class="op">)</span>, unit <span class="op">=</span> <span class="st">"m"</span><span class="op">)</span></span></code></pre></div>
+<p>Rows are origins and columns are destinations. The matrix contains estimated trips on the same time basis as the matrix used to fit the model. The <a href="https://ojwatson.github.io/nomad/articles/introduction.html">introduction</a> explains these inputs and prediction options in more detail.</p>
+<p>We can plot the predictions as a heatmap. Here we show the 20 largest districts by population so that the labels remain readable; <code>M_hat</code> contains predictions for every district.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">shown</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">N</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span></span>
+<span><span class="va">flows</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">as.table</a></span><span class="op">(</span><span class="va">M_hat</span><span class="op">[</span><span class="va">shown</span>, <span class="va">shown</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">flows</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"origin"</span>, <span class="st">"destination"</span>, <span class="st">"trips"</span><span class="op">)</span></span>
+<span><span class="va">flows</span><span class="op">$</span><span class="va">origin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">flows</span><span class="op">$</span><span class="va">origin</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">shown</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">flows</span><span class="op">$</span><span class="va">destination</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">flows</span><span class="op">$</span><span class="va">destination</span>, levels <span class="op">=</span> <span class="va">shown</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Predict mobility model using new data</span></span>
-<span><span class="va">M_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>object<span class="op">=</span><span class="va">mod</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>D <span class="op">=</span> <span class="va">D</span>, N <span class="op">=</span> <span class="va">N</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># And now we can plot our predictions as needed for our own work</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data<span class="op">=</span><span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">M_hat</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">destination</span><span class="op">)</span>,</span>
-<span>                y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">origin</span><span class="op">)</span>,</span>
-<span>                fill<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">'Destination'</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Origin"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">8</span><span class="op">)</span>,</span>
-<span>                     axis.text.y<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">8</span><span class="op">)</span>,</span>
-<span>                     axis.title.x<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span>, margin <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">margin</a></span><span class="op">(</span>t <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                     axis.title.y<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span>, margin <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">margin</a></span><span class="op">(</span>r <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                     legend.position<span class="op">=</span><span class="st">'bottom'</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">viridis</span><span class="fu">::</span><span class="fu"><a href="https://sjmgarnier.github.io/viridis/reference/scale_viridis.html" class="external-link">scale_fill_viridis</a></span><span class="op">(</span>option<span class="op">=</span><span class="st">'inferno'</span>, </span>
-<span>                              direction<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">'log(Estimated number of trips)'</span>,</span>
-<span>                             title.position<span class="op">=</span><span class="st">'top'</span>,</span>
-<span>                             label.theme<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">9</span><span class="op">)</span>,</span>
-<span>                             barwidth<span class="op">=</span><span class="fl">20</span>,</span>
-<span>                             barheight<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span>                             frame.colour<span class="op">=</span><span class="st">'black'</span>,</span>
-<span>                             ticks<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, hjust <span class="op">=</span> <span class="fl">1</span>, vjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-6-1.png"><!-- --></p>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">flows</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">destination</span>, <span class="va">origin</span>, fill <span class="op">=</span> <span class="va">trips</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span></span>
+<span>    option <span class="op">=</span> <span class="st">"inferno"</span>, trans <span class="op">=</span> <span class="st">"log1p"</span>,</span>
+<span>    breaks <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fl">10</span><span class="op">^</span><span class="fu"><a href="https://rdrr.io/r/base/pretty.html" class="external-link">pretty</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    labels <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="va">x</span>, big.mark <span class="op">=</span> <span class="st">","</span>, scientific <span class="op">=</span> <span class="cn">FALSE</span>, trim <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Destination"</span>, y <span class="op">=</span> <span class="st">"Origin"</span>, fill <span class="op">=</span> <span class="st">"Estimated trips"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    panel.grid <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, hjust <span class="op">=</span> <span class="fl">1</span>, vjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
+<span>    legend.key.width <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="st">"cm"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-heatmap-1.png" alt="Predicted trips between the twenty most populous Zambia districts, with origins on rows and destinations on columns"></p>
+</div>
+<div class="section level3">
+<h3 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
+</h3>
+<ul>
+<li>
+<a href="https://ojwatson.github.io/nomad/articles/introduction.html">Introduction</a>: understand model inputs, predictions and time scaling.</li>
+<li>
+<a href="https://ojwatson.github.io/nomad/articles/model.html">Models and mobility data</a>: browse the searchable catalogue, explore coverage on the map and inspect model fits.</li>
+<li>
+<a href="https://ojwatson.github.io/nomad/articles/selecting-a-model.html">Selecting a mobility model</a>: compare candidates, explore uncertainty and combine predictions.</li>
+<li>
+<a href="https://ojwatson.github.io/nomad/articles/outbreak-model-selection.html">An outbreak example</a>: see how mobility assumptions affect a spatial epidemic.</li>
+</ul>
 <div class="section level4">
 <h4 id="licenses">Licenses<a class="anchor" aria-label="anchor" href="#licenses"></a>
 </h4>
-<p>Code: <a href="http://opensource.org/licenses/MIT" class="external-link">MIT</a> year: 2023, copyright holder: OJ Watson</p>
-<p>Data: <a href="http://creativecommons.org/publicdomain/zero/1.0/" class="external-link">CC-0</a> attribution requested in reuse</p>
+<p>Code: <a href="https://opensource.org/licenses/MIT" class="external-link">MIT</a>, copyright OJ Watson.</p>
+<p>Data: <a href="https://creativecommons.org/publicdomain/zero/1.0/" class="external-link">CC-0</a>, attribution requested in reuse.</p>
 </div>
 </div>
 </div>
 
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="license">
+  </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>
@@ -202,40 +175,36 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>OJ Watson <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2374-0741" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>OJ Watson <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2374-0741" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml.yaml" class="external-link"><img src="https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml/badge.svg" alt="R build status"></a></li>
-<li><a href="https://www.codefactor.io/repository/github/OJWatson/nomad" class="external-link"><img src="https://www.codefactor.io/repository/github/OJWatson/nomad/badge" alt="CodeFactor"></a></li>
-<li><a href="https://codecov.io/github/OJWatson/nomad?branch=main" class="external-link"><img src="https://codecov.io/github/OJWatson/nomad/coverage.svg?branch=main" alt="codecov.io"></a></li>
+<li><a href="https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml" class="external-link"><img src="https://github.com/OJWatson/nomad/actions/workflows/check-standard.yaml/badge.svg" alt="R build status"></a></li>
+<li><a href="https://app.codecov.io/gh/OJWatson/nomad" class="external-link"><img src="https://codecov.io/gh/OJWatson/nomad/branch/main/graph/badge.svg" alt="Coverage"></a></li>
 </ul>
 </div>
 
-  </div>
+  </aside>
 </div>
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by OJ Watson.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by OJ Watson.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
 
-  
 
 
-  
+
 
   </body>
 </html>

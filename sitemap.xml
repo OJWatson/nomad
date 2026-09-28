@@ -1,81 +1,43 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://ojwatson.github.io/nomad/404.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/articles/data.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/articles/introduction.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/articles/model.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/articles/structure.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/add_model_to_db.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/check.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/get_pop.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/mobility_db.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/model_db.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/nomad_model.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/nomad_model_.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/nomad_remove_model_data.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/predict.nomad_model.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/print.nomad_model.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/rebuild_model_db.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/remake_model_in_db.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/residuals.nomad_model.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/summary.nomad_model.html</loc>
-  </url>
-  <url>
-    <loc>https://ojwatson.github.io/nomad/reference/unpack_pop.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://ojwatson.github.io/nomad/404.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/LICENSE-text.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/data.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/index.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/introduction.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/outbreak-model-selection.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/selecting-a-model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/articles/structure.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/authors.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/index.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/news/index.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/check.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/compare_models.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/get_pop.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/index.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/mobility_db.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/mobility_metrics.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/mobility_table.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/model_db.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/model_profile.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/model_table.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/model_weights.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/nomad_ensemble.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/nomad_model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/nomad_model_.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/nomad_remove_model_data.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/pipe.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/plot.nomad_model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/plot_prediction_difference.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/plot_uncertainty.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/predict.nomad_ensemble.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/predict.nomad_model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/prediction_difference.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/print.nomad_model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/residuals.nomad_model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/summary.nomad_model.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/uncertainty_matrices.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/uncertainty_summary.html</loc></url>
+<url><loc>https://ojwatson.github.io/nomad/reference/unpack_pop.html</loc></url>
 </urlset>
+

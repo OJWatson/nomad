@@ -1,0 +1,228 @@
+# nomad databases
+
+The following vignette provides an overview of the two databases stored
+within `nomad`. These include a database of mobility models and an
+associated database describing the different mobility datasets that were
+used to fit the mobility models. Additionally, the vignette provides
+information on how to add new models to the `nomad` package.
+
+## Data Stored in `nomad`
+
+### 1. `model_db`
+
+The main purpose of `nomad` is store fitted mobility models for the
+wider research community to use. `model_db` is a database of these
+fitted mobility models.
+
+The database is a named list, with each element representing a different
+fitted model. Each model is named with a standard convention. For
+example, let’s look at `zmb_cdr_2020_mod_dd_exp`.
+
+Each of the names in the model’s snake_case name refer either to the
+data that the model was fit using or the type of model that was fit. For
+example:
+
+The naming conventions help with documenting the models and enable
+linking to the mobility database to query further information about the
+underlying mobility data each model was fit using. All names in the
+snake case model name before `mod` refer to the mobility data.
+
+### 2. `mobility_db`
+
+The second database in `nomad` is a table of the different mobility
+datasets that are used to fit each of the models in `model_db`. The
+table provides metadata about each mobility data set, which is stored to
+help guide users to the mobility data and subsequently the mobility
+model that may be most suitable for their research purposes. For
+example, searching for data sets that are from similar populations, or
+conducted at similar spatial scales.
+
+The table provides the following information about the mobility
+datasets:
+
+The `name` links dataset metadata to fitted models. Four additional
+fields make the prediction contract explicit: `prediction_period_days`,
+`distance_unit`, `has_fitted_models` and `provenance`. A prediction
+period is the interval covered by a trip matrix, not necessarily the
+dates over which observations were gathered. Leave unknown periods as NA
+rather than guessing from those dates.
+
+The new Facebook fits were supplied by JHU. The package records their
+fitting recipe in `data-raw/functions/facebook_models.R` and the country
+scripts. Normal imports read the supplied fitted objects; refitting is
+an explicit opt-in and is not needed to rebuild wrappers.
+`data-raw/source_metadata.R` verifies distance scales against supplied
+geometries and extracts shareable centroids. After model registration,
+`data-raw/mobility_db.R` derives availability from actual model IDs. Run
+it again after adding fits so the two databases remain consistent.
+
+## Adding new mobility models and/or data to `nomad`
+
+When new mobility data sets are generated, users may wish to easily
+share the resultant mobility models with the wider community, without
+requiring users to re-fit the model. These models can be easily added to
+`nomad`.
+
+To ensure consistency with `nomad` and ensure data transparency and
+reproducibility, please follow these steps.
+
+#### 1. Update the mobility database
+
+First, we need to describe the mobility dataset that the models have
+been fit to. In `nomad` we store a database
+([`nomad::mobility_db`](https://ojwatson.github.io/nomad/reference/mobility_db.md)),
+which describes all the mobility datasets that have been used to fit the
+models in `nomad`. If you have generated a new mobility dataset, a
+description of this dataset should be added to
+[`nomad::mobility_db`](https://ojwatson.github.io/nomad/reference/mobility_db.md).
+This can be achieved as follows:
+
+1.  Fork the `nomad` repository and make a new branch
+2.  Go into `data-raw/` and add a new row in `mobility_db.csv` to
+    describe your new mobility data set
+3.  Update the period/unit provenance in `mobility_db.R` for the new
+    source, then run it to generate the catalogue object before
+    registering the model
+4.  Save the new database object with
+    `usethis::use_data(mobility_db, overwrite = TRUE)`.
+
+#### 2. Add your mobility model to `nomad`
+
+To ensure transparency and reproducibility, it is good practice to
+provide the code used to generate the data stored in R packages (where
+possible). For all mobility models stored in `nomad`, we need to provide
+the code used to generate these.
+
+The structure chosen in `nomad` is to include this code in
+`data-raw/models`. In this location there is a directory for each
+mobility dataset. Each directory includes a script that demonstrates how
+the mobility data was processed and used to fit mobility models before
+adding them to `model_db`.
+
+To include your new mobility models, please follow these steps:
+
+1.  Create a new directory in `data-raw/models`, which is named after
+    the mobility dataset that you have added to `mobility_db`.
+2.  Create an R script in this directory and name it after the mobility
+    dataset.
+3.  Edit the R script to show how the mobility dataset is loaded and
+    used to fit different mobility models before adding them to
+    [`nomad::model_db`](https://ojwatson.github.io/nomad/reference/model_db.md).
+4.  Include shareable inputs and document how restricted inputs are
+    supplied locally. Do not commit private trip matrices.
+
+An example as used for the Zambia 2020 Call Data Records
+(`data-raw/models/zmb_cdr_2020`) is shown below:
+
+Show code for this step
+
+``` r
+
+## Code to add zmb_cdr_2020 models to database
+
+# Read in data sets
+D <- readRDS(file.path(here::here(), "data-raw/models/zmb_cdr_2020/dist_data.rds"))
+M <- readRDS(file.path(here::here(), "data-raw/models/zmb_cdr_2020/OD_data_diag.rds"))
+N <- readRDS(file.path(here::here(), "data-raw/models/zmb_cdr_2020/pop_data.rds"))
+
+# Convert to matrices
+D <- as.matrix(D)
+M <- as.matrix(M)
+
+# Set seed for reproducibility
+set.seed(123L)
+
+# Create mobility model
+mod <- mobility::mobility(
+  data = list("D" = D, "M" = M, "N" = N),
+  model = "departure-diffusion",
+  type = "exp",
+  DIC = TRUE)
+
+# Convert to nomad model
+zmb_cdr_2020_mod_dd_exp <- nomad::nomad_model(
+  model = mod,
+  data_name = "zmb_cdr_2020"
+)
+
+# Add to the model database
+model_db <- nomad:::add_model_to_db(zmb_cdr_2020_mod_dd_exp)
+
+# Update the package model database
+usethis::use_data(model_db, overwrite = TRUE)
+```
+
+If the model you have built uses data that you cannot share publicly,
+please still include the code you did use and the datasets that you can
+share (e.g. population and distance matrices data) and after you have
+created the model you can remove the data using
+[`nomad_remove_model_data()`](https://ojwatson.github.io/nomad/reference/nomad_remove_model_data.md).
+
+If the data is removed, however, the methods for checking and returning
+the residuals of the
+[`mobility::mobility()`](https://rdrr.io/pkg/mobility/man/mobility.html)
+model will not work. `nomad` provides a solution to this that allows for
+the model performance statistics and plot to be saved when the
+underlying data is removed with the argument `save_model_checks`. For
+example, in the `nomad` package, we include models that are based on
+Facebook data that can not be shared publicly. However, we can save the
+model check summaries in `nomad` as follows (this example can be seen in
+`data-raw/models/zmb_fb_2020`).
+
+Show code for this step
+
+``` r
+
+# First define where we are saving the model_check.png to in data-raw
+model_check_path <- file.path(here::here(), "data-raw/models/zmb_fb_2020/model_check.png")
+
+# Now remove the data but save_model_checks
+zmb_fb_2020_mod_grav_exp <- nomad_remove_model_data(
+  zmb_fb_2020_mod_grav_exp,
+  M = TRUE,
+  save_model_checks = TRUE,
+  # the following arguments are passed to png to save the model check plot
+  filename = model_check_path,
+  width = 8,
+  height = 4,
+  units = "in",
+  res = 300
+  )
+```
+
+This will now save the model check statistics in the model object, which
+can be accessed with `zmb_fb_2020_mod_grav_exp$get_check_res()` and save
+the check plot to file, specified with `filename`. To then make this
+plot object available to other users to see, we then need to copy it
+into `inst/extdata`. Please follow the example laid out below (also in
+`data-raw/models/zmb_fb_2020`):
+
+``` r
+
+# Now copy the model check plot to the package external directory
+copy_loc <- file.path(
+  here::here(),
+  "inst/extdata/model_checks",
+  file.path(basename(dirname(model_check_path)), basename(model_check_path))
+)
+dir.create(dirname(copy_loc), recursive = TRUE, showWarnings = FALSE)
+file.copy(model_check_path, copy_loc)
+```
+
+This means the check plots are available for other users to view. In
+`nomad`, when users wish to
+[`check()`](https://ojwatson.github.io/nomad/reference/check.md) model
+objects, it will return the same outputs now as if the data was shared.
+However, the [`residuals()`](https://rdrr.io/r/stats/residuals.html)
+function will not return an output (as the end user could combine the
+outputs of [`predict()`](https://rdrr.io/r/stats/predict.html) and
+[`residuals()`](https://rdrr.io/r/stats/residuals.html) to recover the
+underlying data)
+
+#### 3. Incorporate changes and submit pull request
+
+1.  Check that the changes have not impacted the package
+    `devtools::check()` (Ctrl+Shift+E)
+2.  Commit your changes and push changes to your fork on Github
+3.  Make a pull request with your new model and tag one of the
+    maintainers of `nomad` (@OJWatson).
