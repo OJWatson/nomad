@@ -77,7 +77,8 @@ The source-region selector adds administrative centroids for the newer Facebook
 datasets.
 
 ```{r coverage-map, fold_label="Show how to make the coverage map in R"}
-world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+world <- rnaturalearth::ne_countries(scale = "medium", type = "map_units",
+                                       returnclass = "sf")
 locations <- readRDS(system.file("extdata", "source_locations.rds", package = "nomad"))
 map_data <- datasets[order(datasets$date_end, decreasing = TRUE, na.last = TRUE), ]
 map_data <- map_data[!duplicated(paste(map_data$country, map_data$type)), ]

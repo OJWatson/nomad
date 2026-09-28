@@ -126,7 +126,7 @@ plot_uncertainty <- function(x,
   if (is.null(origins)) origins <- as.character(seq_len(nrow(selected[[1]])))
   if (is.null(destinations)) destinations <- as.character(seq_len(ncol(selected[[1]])))
   labels <- paste0(100 * selection$prob, "% quantile\n",
-                   format(signif(selection$value, 3), big.mark = ",", trim = TRUE),
+                   format(round(selection$value), big.mark = ",", scientific = FALSE, trim = TRUE),
                    " trips")
   cells <- do.call(rbind, lapply(seq_along(selected), function(i) {
     out <- expand.grid(origin = origins, destination = destinations,
