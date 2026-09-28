@@ -87,7 +87,10 @@ plot.nomad_model <- function(x, ...) {
 #' @details When \code{nsim = 1}, the prediction matrix is calculated
 #'   using the mean point estimate of parameter values. If \code{nsim > 1}
 #'   then an array that contains \code{nsim} number of simulated replications
-#'   is returned based on the posterior distributions of each parameter.
+#'   is returned. The current mobility predictor draws each parameter independently
+#'   from a normal distribution truncated at zero, using its stored mean and
+#'   standard deviation. These approximations do not preserve posterior parameter
+#'   correlations or add observation noise or uncertainty in the input covariates.
 #'
 #'   Warnings will be shown if the `newdata` provided is unlikely to be well
 #'   predicted by the model. These checks are advisory and are intended to help

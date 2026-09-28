@@ -7,6 +7,16 @@ template:
     base_font: "Lato, Helvetica Neue, Arial, sans-serif"
     font-size-base: 0.9375rem
 
+navbar:
+  structure:
+    left: [reference, articles, news]
+    right: [search, github]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/OJWatson/nomad
+      aria-label: GitHub repository
+
 articles:
 - title: Get started
   navbar: Get started

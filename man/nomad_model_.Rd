@@ -81,7 +81,8 @@ prior to model simulation (default = \code{NULL})}
 When \code{nsim = 1}, the prediction matrix is calculated
 using the mean point estimate of parameter values. If \code{nsim > 1}
 then returns and array that contains \code{nsim} number of simulated
-replications based on the posterior distributions of each parameter.
+replications using independent, zero-truncated normal approximations
+to the parameter summaries. See \code{\link[=predict.nomad_model]{predict.nomad_model()}} for limitations.
 }
 
 \subsection{Returns}{

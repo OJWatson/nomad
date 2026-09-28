@@ -14,7 +14,7 @@ source(system.file("rmarkdown", "folding.R", package = "nomad"))
 
 This walkthrough starts with a dataset, compares its fitted models, and predicts
 movement for a common set of regions. You will finish with an explicit ensemble
-and an interactive comparison. You need `nomad`; no private trip data are needed.
+and heatmaps comparing several weights. You need `nomad`; no private trip data are needed.
 Long setup and plotting blocks can be expanded when you want to inspect the code.
 Prediction warnings are retained in expandable panels beside each result; open
 them to check how the example differs from the fitted setting.
@@ -152,8 +152,14 @@ interpreting a cross-border prediction.
 
 A point prediction uses mean parameter estimates. With `nsim = 100`, a supported
 model returns an array whose third dimension indexes simulated matrices. The
-summary below describes variation in total and between-region movement; these
-are parameter draws, not a guarantee of predictive calibration.
+summary below describes variation in total and between-region movement.
+
+The current `mobility` predictor samples each parameter independently from a
+normal distribution truncated at zero, using its stored mean and standard
+deviation. These are approximate parameter draws, not joint samples from the
+fitted MCMC chains. They omit parameter correlations and add no observation
+noise, uncertainty in populations or distances, or uncertainty from transferring
+the model to another setting.
 
 ```{r}
 draws <- predict(gravity, newdata = newdata, unit = "m", nsim = 100, seed = 42)
@@ -172,15 +178,39 @@ scale uses log(1 + trips) to keep smaller flows visible, including zeros.
 plot_uncertainty(draws, metric = "between_region", probs = c(0.1, 0.5, 0.9))
 ```
 
+The small difference between these panels is present in the supplied fit. We can
+check its parameter summaries and quantify the spread in between-region trips:
+
+```{r}
+parameter_summary <- gravity$get_model()$summary[, c("mean", "sd")]
+parameter_summary
+between <- mobility_metrics(draws)$between_region
+interval <- stats::quantile(between, c(0.1, 0.5, 0.9))
+relative_width <- 100 * (interval[3] - interval[1]) / interval[2]
+```
+
+For these 100 draws, the 10th-to-90th percentile interval is only
+`r sprintf("%.3f%%", relative_width)` of the median between-region trip total.
+The movement-rate parameter `theta` and distance parameter `delta` have very
+small stored standard deviations relative to their means. In this normalised
+gravity model, total trips are `theta * sum(N)`, which also constrains variation
+in the total. The destination-population exponent `omega` is close to zero.
+
+This measures a narrow part of uncertainty under one fitted model. It does not
+establish that trips in these regions are known that precisely. Increasing
+`nsim` gives more draws from the same approximation; it does not add missing
+sources of uncertainty. Comparing different mobility assumptions is therefore a
+separate, useful sensitivity analysis.
+
 ## Compare and combine predictions
 
 Both matrices now describe the same named target regions and period. Their
-difference is meaningful: positive entries below mean that gravity predicts more
-trips than departure-diffusion. Nomad aligns reordered region names and rejects
+difference is meaningful. Using gravity as the baseline, positive entries below
+mean that departure-diffusion predicts more trips. Nomad aligns reordered region names and rejects
 matrices referring to different target regions.
 
 ```{r}
-round(prediction_difference(a, b)[1:4, 1:4])
+round(prediction_difference(b, a)[1:4, 1:4])
 ensemble <- nomad_ensemble(list(gravity = gravity, departure = departure),
                            weights = c(gravity = 0.6, departure = 0.4))
 combined <- predict(ensemble, newdata = newdata, unit = "m", duration = 21)
@@ -191,12 +221,52 @@ These manual weights state our choice explicitly. Equal weights are also a valid
 choice, but nomad will never substitute them when requested fit-based weights
 cannot be calculated.
 
-The slider below varies the weight of departure-diffusion (model B). The two
-individual predictions stay fixed; the ensemble and its difference from gravity
-update immediately. The same function works in an R notebook or saved HTML widget.
+To see how those choices affect individual flows, compare three fixed weights
+against the gravity prediction. Each panel below shows **ensemble minus gravity**:
+red cells mean more trips than gravity predicts, blue cells mean fewer, and white
+means no change. Rows are origins and columns are destinations, including trips
+that stay within the same region on the diagonal.
 
-```{r}
-compare_models(gravity, departure, newdata = newdata, unit = "m", duration = 21)
+All panels use the same colour limits, centred on zero. The weights are illustrative
+sensitivity choices, not estimates of which model is correct. With two fixed
+component matrices, the difference is `weight * (departure - gravity)`, so the
+pattern stays the same while its magnitude changes.
+
+```{r weight-differences, fig.width=10, fig.height=5.5, fold=TRUE, fold_label="Show how to compare fixed ensemble weights", fig.alt="Difference from gravity predictions at 25, 50 and 75 percent departure-diffusion weight; red means more trips and blue means fewer, with one shared colour scale"}
+weights <- c(0.25, 0.5, 0.75)
+differences <- lapply(weights, function(weight) {
+  candidate <- nomad_ensemble(list(gravity = gravity, departure = departure),
+                              weights = c(gravity = 1 - weight, departure = weight))
+  prediction <- predict(candidate, newdata = newdata, unit = "m", duration = 21)
+  cells <- as.data.frame(as.table(prediction_difference(prediction, a)))
+  names(cells) <- c("origin", "destination", "difference")
+  cells$weight <- paste0(100 * weight, "% departure-diffusion")
+  cells
+})
+changes <- do.call(rbind, differences)
+changes$origin <- factor(changes$origin, levels = rev(rownames(a)))
+changes$destination <- factor(changes$destination, levels = colnames(a))
+limit <- max(abs(changes$difference))
+
+ggplot2::ggplot(changes, ggplot2::aes(destination, origin, fill = difference)) +
+  ggplot2::geom_tile() +
+  ggplot2::facet_wrap(~weight, nrow = 1) +
+  ggplot2::scale_fill_gradient2(
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0, limits = c(-limit, limit),
+    labels = function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+  ) +
+  ggplot2::scale_x_discrete(expand = c(0, 0)) +
+  ggplot2::scale_y_discrete(expand = c(0, 0)) +
+  ggplot2::labs(x = "Destination", y = "Origin", fill = "Change in predicted trips") +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    panel.grid = ggplot2::element_blank(),
+    axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
+    strip.text = ggplot2::element_text(face = "bold"),
+    legend.position = "bottom",
+    legend.key.width = grid::unit(1.5, "cm")
+  )
 ```
 
 Carry several plausible mobility assumptions into your downstream analysis.
