@@ -9,16 +9,166 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>"
 )
+source(system.file("rmarkdown", "folding.R", package = "nomad"))
 ```
 
+`nomad` stores fitted mobility models for infectious disease modelling. The
+usual workflow is:
+
+1. identify a plausible source mobility dataset;
+2. inspect the fitted models available for that dataset;
+3. prepare a distance matrix and population vector for the prediction setting;
+4. predict a mobility matrix;
+5. check warnings and sensitivity to alternative models.
+
 ```{r setup}
-# remotes::install_github("OJWatson/nomad")
 library(nomad)
 ```
 
-## 1. Displaying Available Models
+## Available Data And Models
 
-All available models and underlying data are available to view at: `vignette("Models")`
+The mobility catalogue describes the source datasets used to fit models in the
+package. It is the first thing to check because a model fitted to the wrong
+country, period, or spatial scale can be more misleading than helpful.
+
+```{r}
+mobility_table()
+```
+
+Check `has_fitted_models` before selecting a dataset: some catalogue entries
+are awaiting data and have no model yet. The model catalogue below lists the
+actual fitted variants, along with their source metadata and fit statistics.
+
+```{r}
+model_table(country = "ZMB")
+```
+
+## Inspect A Model
+
+The model profile summarises the scale and period of the source data. This is
+the quickest way to check whether a model is plausible for a prediction task.
+
+```{r}
+model <- model_db$zmb_fb_2025_mod_grav_exp_norm
+model_profile(model)
+```
+
+Model-check statistics and plots are available even when the underlying private
+mobility matrix cannot be bundled.
+
+```{r}
+check(model, plots = FALSE)
+plot(model)
+```
+
+## Prepare A Small Prediction Setting
+
+Predictions use the same data structure as `mobility::predict()`: a distance
+matrix `D` and either one population vector `N` or origin/destination vectors
+`N_orig` and `N_dest`.
+
+Here we make a small, named toy setting. The values are not intended to be real
+Zambia data; they are just enough to show the shape of a prediction request.
+
+```{r, fold=TRUE, fold_label="Show how to construct the example regions"}
+places <- data.frame(
+  name = c("Lusaka", "Kabwe", "Ndola", "Kitwe", "Livingstone"),
+  x = c(0, 1.2, 2.8, 2.6, -1.4),
+  y = c(0, 1.0, 2.7, 2.4, -2.7),
+  population = c(2500000, 230000, 475000, 690000, 170000)
+)
+
+D <- as.matrix(dist(places[, c("x", "y")])) * 120
+dimnames(D) <- list(places$name, places$name)
+N <- setNames(places$population, places$name)
+newdata <- list(D = D, N = N)
+```
+
+## Make A Prediction
+
+This toy request is smaller than the model source data, so `nomad` warns. That
+is deliberate: warnings are part of the workflow, not just noise to suppress.
+
+```{r}
+M <- predict(model, newdata = newdata, unit = "km")
+round(M / 1000, 1)
+```
+
+Rows are origins and columns are destinations. These displayed values are in
+thousands of predicted trips over 21 days, not probabilities. A person can
+contribute more than one trip. The names on the matrix and population vector
+must identify the same regions; nomad aligns named populations before prediction.
+
+For a real analysis, the next step would be to decide whether the warning is
+acceptable, whether a better-matched model exists, or whether the prediction
+regions should be changed.
+
+## Use Source Data When You Want A Clean Demonstration
+
+The fitted model also contains public covariates from the source setting. Reusing
+those covariates is useful for checking package mechanics without introducing a
+scale mismatch.
+
+```{r}
+source_data <- model$get_model()$data[c("D", "N_orig", "N_dest")]
+M_source <- predict(model, newdata = source_data)
+M_source[1:5, 1:5]
+```
+
+If a prediction should represent a different time period, supply `duration` in
+days or a `date_start`/`date_end` pair. The new Facebook models represent 21-day
+trip counts; collection dates are a separate field. Scaling assumes a constant
+trip rate. Original Zambia models with an unknown prediction period can only
+return unscaled predictions, with a warning.
+
+```{r}
+cdr_model <- model_db$zmb_fb_2025_mod_dd_exp
+cdr_data <- cdr_model$get_model()$data[c("D", "N_orig", "N_dest")]
+
+M_30 <- predict(cdr_model, newdata = cdr_data, duration = 30)
+attr(M_30, "duration_scale")
+```
+
+## Compare Alternatives
+
+When more than one model is plausible, use model-fit statistics to make the
+comparison explicit. `model_weights()` gives simple candidate weights from a
+chosen metric; users should still decide whether the source data are relevant.
+
+```{r}
+weights <- model_weights(data_name = "zmb_fb_2025", metric = "RMSE")
+weights[, c("name", "RMSE", "weight")]
+```
+
+`nomad_ensemble()` combines predictions from several models using explicit
+weights. This example compares two families fitted to the same 21-day dataset.
+Each is predicted for the same target regions, so the outputs can be combined.
+The weights sum to one; 0.5 gives each prediction equal influence.
+
+```{r}
+ensemble <- nomad_ensemble(
+  list(cdr = cdr_model, facebook = model),
+  weights = c(cdr = 0.5, facebook = 0.5)
+)
+M_ensemble <- predict(ensemble, newdata = newdata, unit = "km")
+round(sum(M_ensemble))
+```
+
+## Simulated Predictions
+
+With `nsim > 1`, predictions are stochastic draws. `nomad` can summarise and
+select representative lower, median, and upper matrices.
+
+```{r}
+draws <- predict(model, newdata = source_data, nsim = 10, seed = 1)
+uncertainty_summary(draws, metrics = c("total", "between_region"))
+```
+
+The "Selecting a mobility model" vignette gives more detail on warnings,
+uncertainty summaries, prediction differences, and ensembles. The
+"Identifying a mobility model for an outbreak" vignette shows how model choice
+can be linked to an epidemiological outcome rather than only to mobility fit
+metrics.

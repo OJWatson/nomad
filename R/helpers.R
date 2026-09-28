@@ -19,7 +19,7 @@ print_mobility_data <- function(data_name) {
 #' @noRd
 print_nomad_model <- function(x) {
 
-  mod <- x$get_model()
+  mod <- x$get_model(hydrate = FALSE)
 
   # Get the hierarchical first
   hierarchical <- model_hierarchical_string(mod)
@@ -50,16 +50,16 @@ print_nomad_model <- function(x) {
 #' @noRd
 rename_mobility_db <- function() {
   nomad::mobility_db %>%
-    dplyr::rename(Name = .data$name) %>%
-    dplyr::rename(Data = .data$type) %>%
-    dplyr::rename(ISO3C = .data$country) %>%
-    dplyr::rename(N = .data$n) %>%
-    dplyr::rename(Scheme = .data$sampling_scheme) %>%
-    dplyr::rename(Censoring = .data$censoring) %>%
-    dplyr::rename(Aggregation = .data$aggregation) %>%
-    dplyr::rename(URL = .data$publication) %>%
-    dplyr::rename(Start = .data$date_start) %>%
-    dplyr::rename(End = .data$date_end)
+    dplyr::rename(Name = "name") %>%
+    dplyr::rename(Data = "type") %>%
+    dplyr::rename(ISO3C = "country") %>%
+    dplyr::rename(N = "n") %>%
+    dplyr::rename(Scheme = "sampling_scheme") %>%
+    dplyr::rename(Censoring = "censoring") %>%
+    dplyr::rename(Aggregation = "aggregation") %>%
+    dplyr::rename(URL = "publication") %>%
+    dplyr::rename(Start = "date_start") %>%
+    dplyr::rename(End = "date_end")
 }
 
 #' @noRd
@@ -97,5 +97,5 @@ model_hierarchical_string <- function(model) {
       hierarchical <- "hierarchical"
     }
   }
-  return(hierarchical)
+  hierarchical
 }

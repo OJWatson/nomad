@@ -17,8 +17,12 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 analysis
+^AGENTS\.md$
 ^_pkgdown\.yml$
 ^pkgdown$
 ^data-raw$
 ^doc$
 ^Meta$
+
+^vignettes/model\.Rmd$
+^vignettes/model_checks$

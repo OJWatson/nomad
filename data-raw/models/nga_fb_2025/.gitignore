@@ -1,0 +1,4 @@
+M.rds
+MODEL_OUTPUT/
+model_checks/
+*.tmp

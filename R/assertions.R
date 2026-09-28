@@ -20,7 +20,7 @@ assert_string <- function(x,
                           message = "%s must be character string",
                           name = deparse(substitute(x))) {
 
-  if (!is.character(x)) {
+  if (!is.character(x) || length(x) != 1L || is.na(x)) {
     stop(sprintf(message, name), call. = FALSE)
   }
   return(TRUE)

@@ -9,109 +9,91 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>"
 )
+source(system.file("rmarkdown", "folding.R", package = "nomad"))
 ```
 
-## Structure
+`nomad` is built around a small number of linked objects and workflows. The
+package stores fitted mobility models, describes the data used to fit them, and
+provides helpers for deciding whether a model is suitable for a new prediction
+task.
 
-This is an overall structure of the `nomad` package, which details the 
-different components (models, underlying data, population helpers etc). 
+## Core Objects
 
-The package components are shown below:
+The central object is a `nomad_model`, an R6 wrapper around a
+`mobility::mobility()` model. It keeps the fitted model interface familiar while
+adding package-specific metadata, checks, and printing.
 
-![nomad structure](imgs/structure.jpg)
-The current features are detailed below with respect to specific development 
-milestones: 
+The package data objects are:
 
-## Milestone 1
+1. `model_db`: a named list of fitted `nomad_model` objects.
+2. `mobility_db`: a table describing the source mobility datasets.
 
-### 1. Models
+The link between them is the source data name. For example,
+`zmb_fb_2020_mod_grav_exp` is a model fitted to the `zmb_fb_2020` mobility
+dataset.
 
-The main workhorse is an `R6` mobility model class. This class will store 
-mobility models, which will include the same functionality of the `mobility` model
-(prediction to new data, use for destination probability prediction etc), 
-while providing additional functionality to help users:
+## User Workflow
 
-1. Show the model performance against the data used in fitting
-2. Descriptions of the model type
-3. Description of the data set used in fitting (links to data catalogue)
-4. Reproducibility caching for stochastic draws
+A typical analysis has five steps:
 
-Models are stored in `nomad` for users to apply for their own research need. To 
-help users identify the best model for their needs, `nomad` also maintains
-a data catalogue of the different mobility data sets that have been used in 
-producing the `mobility` models available in nomad. 
+1. Search `mobility_table()` and `model_table()` for relevant source data and
+   fitted models.
+2. Inspect the source scale with `model_profile()`.
+3. Prepare prediction data: a distance matrix and population vector.
+4. Predict a mobility matrix with `predict()`.
+5. Use warnings, uncertainty summaries, model differences, or ensembles to test
+   whether the selected model is appropriate.
 
-### 2. Data Catalogue
+Population helpers such as `get_pop()` and `unpack_pop()` support the data
+preparation step, but users can also supply their own population vectors and
+distance matrices directly.
 
-The data catalgoue will be a structure data set (format undecided as yet) for 
-storing meta data about each mobility data set that has been used to create 
-mobility models. The meta data (mobility data survey size, sampling scheme, 
-respondent characteristics, location, associated publication, date of survey, 
-description of data censoring or aggregation, spatial resolution etc) will help guide 
-users to understand which data source seems most suitable for their use case. 
+## From stored fit to prediction
 
-For example, end users may want to choose mobility models that have been fit
-using data from the same country as their analysis, or may want to select based 
-on mobility data type (flight data, travel surveys etc). To facilitate this need, 
-`nomad` provides functionality to query and visualise mobility data:
+The database includes 612 Facebook fits across 51 country/territory datasets and
+two original Zambia fits. Each dataset can have multiple model families.
+`has_fitted_models` distinguishes usable datasets from metadata-only entries.
 
-1. Maps of data locations
-2. Visualisations of survey sizes
-3. Querying spatial scale of surveys, e.g. admin level
+Private Facebook trip matrices are removed before packaging. Shared distance and
+population covariates live once per dataset in `inst/extdata/model_data`;
+`get_model()` restores those covariates when a method needs them. Saved fit
+statistics and plots allow inspection without distributing private observations.
 
-Once users have identified suitable data sets, they can identify the associated
-model objects for fits to these data sets. 
+Both `predict(model)` and `model$predict()` follow the same path: validate and
+align inputs, convert declared distance units, check model capabilities, predict,
+and apply a requested duration. Source dates describe data collection; the
+separate prediction period controls conversion. Unknown periods cannot be scaled.
 
-### 3. Helper Functions
+Transferable models can accept new regions and populations. Basic/finite radiation
+instead retains a matrix for its exact source setting. Its capability check runs
+before the underlying mobility method, including in an ensemble, to prevent an
+original matrix being mistaken for predictions for new regions.
 
-End users are likely to approach `nomad` with their own location data (lat/long, 
-shape files, distance matrices etc) and possibly linked population data. To help
-users get their data into a format needed for `mobility` models as well as to 
-help provide interpretation and reproducibility for their analyses, we provide 
-series of helper functions in nomad:
+Ensembles align component predictions by target-region names. This compares the
+requested output settings, not the regions each model was trained on. Periods
+must also agree, or be convertible to a common requested duration. Named weights
+are matched to models rather than assigned by table position.
 
-1. API tools for population data sets (WorldPop)
-2. Conversion from population rasters to shape files
-3. Plotting and visualisation of outputs from mobility models
+## Package Design Notes
 
-Lastly, provide suppoting vignettes and guides to give demonstration of full 
-functionality, relationship to the `mobility` package as well as how users with
-their own mobility data can use `mobility` to fit mobility models and how to 
-integrate these with `nomad` either by submitting new PRs, or by converting
-their mobility model into one that can leverage `nomad` functionality. 
+The package deliberately keeps modelling objects as plain R objects. This makes
+them easy to use in scripts, reports, and downstream disease models without
+requiring an app framework.
 
-## Milestone 2
+The vignettes now have distinct roles:
 
-1. Inclusion of additional models for each data set and way for users to query
-the model fit summary statistics to identify alternative models for the same data.
-2. Warnings when users provide lat/long or shapes that cross international borders
-as there are no data sets currently that are suitable for modelling international
-mobility.
-3. Warning when users provide lat/long or shapes that are below the spatial 
-resolution of the data set used to fit the model, e.g. lat/long is for villages
-inside an admin 2, but the data only had one data point per admin 2 unit. 
+1. The introduction gives the shortest complete user workflow.
+2. The models and mobility data vignette describes available source data and
+   fitted models.
+3. The selecting-a-model vignette focuses on scale checks, warnings,
+   uncertainty, differences, and ensembles.
+4. The outbreak vignette shows how a fixed transmission model can be used to
+   compare candidate mobility assumptions.
+5. The database and structure vignettes describe package design for maintainers.
 
-## Milestone 3
-
-1. Uncertainty visualisation. From 100 stochastic draws, generate range of 
-metrics to describe each matrix and visualise the upper/lower matrices based on
-the different metrics. 
-
-## Milestone 4
-
-1. Tool for creating simple ensemble mobility models (predicting from multiple models
-with appropriate weights based on user needs)
-2. Interactive tool for demonstrating the difference between model predictions
-and linking this to an ensemble (widget slider for different weights)
-3. Vignette to demonstrate how to select a model to use. Possible ideas include
-simulating dummy infectious disease spatial model and then identifying the best
-model best on goodness of fit based on different mobility models, while fixing 
-everything else. 
-
-## Extra
-
-1. PRs to `mobility` for custom model specification
-
+The three older CDR catalogue entries remain future additions. Maintainers can
+add their fitted models when the inputs become available; the availability flag
+is regenerated from the model database rather than maintained by hand.
