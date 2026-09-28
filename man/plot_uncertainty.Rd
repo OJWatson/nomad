@@ -4,7 +4,13 @@
 \alias{plot_uncertainty}
 \title{Plot representative uncertainty matrices}
 \usage{
-plot_uncertainty(x, metric = "total", probs = c(0.025, 0.5, 0.975), ...)
+plot_uncertainty(
+  x,
+  metric = "total",
+  probs = c(0.025, 0.5, 0.975),
+  scale = c("log1p", "identity"),
+  ...
+)
 }
 \arguments{
 \item{x}{A 3D prediction array with simulations in the third dimension.}
@@ -14,11 +20,15 @@ plot_uncertainty(x, metric = "total", probs = c(0.025, 0.5, 0.975), ...)
 
 \item{probs}{Quantiles to select.}
 
-\item{...}{Further arguments passed to \code{\link[graphics:image]{graphics::image()}}.}
+\item{scale}{Colour transformation: \code{"log1p"} (default) or \code{"identity"}.
+Log1p accommodates zero flows and makes smaller flows visible.}
+
+\item{...}{Further arguments passed to \code{\link[ggplot2:geom_tile]{ggplot2::geom_tile()}}.}
 }
 \value{
 Invisibly returns the selected matrices.
 }
 \description{
-Plots matrices selected by \code{\link[=uncertainty_matrices]{uncertainty_matrices()}} using base graphics.
+Plots complete draws selected by \code{\link[=uncertainty_matrices]{uncertainty_matrices()}} as labelled heatmaps
+with a shared colour scale. Requires ggplot2.
 }

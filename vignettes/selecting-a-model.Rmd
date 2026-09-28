@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(collapse = FALSE, comment = "#>")
+knitr::opts_chunk$set(collapse = FALSE, comment = "#>", warning = TRUE, fold_warnings = TRUE)
 source(system.file("rmarkdown", "folding.R", package = "nomad"))
 ```
 
@@ -16,6 +16,8 @@ This walkthrough starts with a dataset, compares its fitted models, and predicts
 movement for a common set of regions. You will finish with an explicit ensemble
 and an interactive comparison. You need `nomad`; no private trip data are needed.
 Long setup and plotting blocks can be expanded when you want to inspect the code.
+Prediction warnings are retained in expandable panels beside each result; open
+them to check how the example differs from the fitted setting.
 
 ```{r}
 library(nomad)
@@ -48,7 +50,8 @@ will transfer successfully to another setting.
 
 ```{r}
 candidates <- model_table(data_name = "zmb_fb_2025")
-candidates[, c("name", "mobility_model", "RMSE", "DIC", "max_rhat", "min_n_eff", "supports_newdata")]
+knitr::kable(candidates[, c("model_type", "mobility_model", "RMSE", "max_rhat", "supports_newdata")],
+             digits = 2, col.names = c("Type", "Family", "RMSE", "Maximum R-hat", "New regions"))
 ```
 
 Inspect `max_rhat` alongside fit error. A high stored R-hat raises a convergence
@@ -63,7 +66,7 @@ within one dataset; use deliberate manual weights for comparisons across sources
 
 ```{r}
 weights <- model_weights(data_name = "zmb_fb_2025", metric = "RMSE")
-weights[, c("name", "RMSE", "weight")]
+knitr::kable(weights[, c("name", "RMSE", "weight")], digits = c(0, 1, 3))
 ```
 
 Weights are a starting point for sensitivity analysis. They do not account for
@@ -161,10 +164,12 @@ attr(selected, "selected")
 
 The selected matrices represent lower, middle and upper movement according to
 that metric. They are complete draws, rather than a matrix made by taking an
-independent quantile in each cell. Changing the metric may select different draws.
+independent quantile in each cell. Changing the metric may select different draws. All three heatmaps share the
+same colour scale, so the same colour means the same trip count. The colour
+scale uses log(1 + trips) to keep smaller flows visible, including zeros.
 
-```{r, fig.width=7, fig.height=4, fig.alt="Lower, median and upper mobility matrices selected by between-region movement"}
-plot_uncertainty(draws, metric = "between_region")
+```{r, fig.width=10, fig.height=5.5, fig.alt="Lower, median and upper mobility matrices selected by between-region movement"}
+plot_uncertainty(draws, metric = "between_region", probs = c(0.1, 0.5, 0.9))
 ```
 
 ## Compare and combine predictions

@@ -136,7 +136,8 @@ simulate_sir <- function(P,
                          gamma = 1 / 7,
                          epsilon = 0.28,
                          seed_region = "Central City",
-                         seed_infections = 60) {
+                         seed_infections = 60,
+                         keep_history = FALSE) {
   S <- round(N)
   I <- setNames(rep(0, length(N)), names(N))
   R <- I
@@ -146,6 +147,9 @@ simulate_sir <- function(P,
   S[seed_region] <- S[seed_region] - seed_infections
   C[seed_region] <- seed_infections
 
+  if (keep_history) {
+    history <- vector("list", days)
+  }
   p_recover <- 1 - exp(-gamma)
 
   for (day in seq_len(days)) {
@@ -163,8 +167,15 @@ simulate_sir <- function(P,
     I <- I + new_infections - recoveries
     R <- R + recoveries
     C <- C + new_infections
+    if (keep_history) {
+      history[[day]] <- data.frame(day = day, region = names(N),
+                                   new_infections = new_infections,
+                                   susceptible = S, infectious = I, recovered = R,
+                                   cumulative = C)
+    }
   }
 
+  if (keep_history) return(do.call(rbind, history))
   C
 }
 
@@ -209,7 +220,9 @@ be compared with these counts using independent simulation averages.
 ```{r}
 truth_coupling <- flow_to_coupling(gravity_flows)
 set.seed(99)
-observed_cases <- simulate_sir(truth_coupling, N)
+observed_history <- simulate_sir(truth_coupling, N, keep_history = TRUE)
+last_day <- observed_history[observed_history$day == max(observed_history$day), ]
+observed_cases <- setNames(last_day$cumulative, last_day$region)
 outbreak <- data.frame(
   region = names(observed_cases),
   population = as.numeric(N),
@@ -242,6 +255,30 @@ ggplot2::ggplot(case_plot_data, ggplot2::aes(observed_cases, region)) +
     panel.grid.major.y = ggplot2::element_blank(),
     plot.title.position = "plot"
   )
+```
+
+## How the outbreak unfolds
+
+The final case counts hide when infections arrived in each region. These panels
+show daily new infections from the same simulated outbreak, starting after the
+initial seed in Central City. The vertical scales vary by region so that smaller
+outbreaks remain visible; compare timing and curve shape across panels, and use
+the axis values when comparing case numbers.
+
+```{r regional-curves, fig.width=10, fig.height=9, fold=TRUE, fold_label="Show how to plot the regional outbreak curves", fig.alt="Daily new infections over 45 days, shown in separate panels for all 24 fictional regions"}
+observed_history$region <- factor(observed_history$region, levels = regions$region)
+ggplot2::ggplot(observed_history, ggplot2::aes(day, new_infections)) +
+  ggplot2::geom_area(fill = "#33658a", alpha = 0.15) +
+  ggplot2::geom_line(colour = "#33658a", linewidth = 0.45) +
+  ggplot2::facet_wrap(~region, ncol = 4, scales = "free_y") +
+  ggplot2::scale_x_continuous(breaks = c(1, 15, 30, 45)) +
+  ggplot2::labs(x = "Day", y = "New infections",
+                title = "The outbreak across regions",
+                subtitle = "One simulated outbreak; vertical scales differ between regions") +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
+                 strip.text = ggplot2::element_text(face = "bold"),
+                 plot.title.position = "plot")
 ```
 
 ## Score Candidate Mobility Models

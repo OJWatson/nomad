@@ -3,6 +3,9 @@ url: https://ojwatson.github.io/nomad/
 template:
   bootstrap: 5
   bootswatch: flatly
+  bslib:
+    base_font: "Lato, Helvetica Neue, Arial, sans-serif"
+    font-size-base: 0.9375rem
 
 articles:
 - title: Get started

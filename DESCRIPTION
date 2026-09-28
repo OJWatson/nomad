@@ -30,6 +30,7 @@ Suggests:
     usethis
 URL: https://ojwatson.github.io/nomad/
 VignetteBuilder: knitr
+Config/Needs/website: rnaturalearthdata
 Depends: 
     R (>= 4.4.0)
 RoxygenNote: 7.3.3

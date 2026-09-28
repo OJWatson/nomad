@@ -1,0 +1,29 @@
+/* Retain the compact typography and table feedback of the earlier site. */
+body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+body > .container { padding-top: 1.5rem; }
+@media (min-width: 1200px) {
+  .container { max-width: 1170px; }
+}
+h1 { font-size: 2.4rem; }
+h2 { font-size: 1.9rem; }
+h3 { font-size: 1.5rem; }
+.template-home img[alt="nomad logo"] {
+  height: 75px;
+  width: auto;
+}
+.table tbody tr:hover > td { background-color: #eaf4f8; }
+details {
+  margin: 1em 0;
+  padding: 0.6em 0.9em;
+  border: 1px solid #dce3e6;
+  border-radius: 4px;
+}
+details summary { color: #2c3e50; cursor: pointer; }
+details[open] summary { margin-bottom: 0.7em; }
+details.nomad-warnings { border-left: 3px solid #d49b32; }
+body:has(#catalogue-page) #main { width: 100%; max-width: none; }
+body:has(#catalogue-page) aside { display: none; }
+.catalogue-plot { width: 100%; height: auto; }

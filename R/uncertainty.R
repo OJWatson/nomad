@@ -97,42 +97,76 @@ uncertainty_matrices <- function(x,
 
 #' Plot representative uncertainty matrices
 #'
-#' Plots matrices selected by [uncertainty_matrices()] using base graphics.
+#' Plots complete draws selected by [uncertainty_matrices()] as labelled heatmaps
+#' with a shared colour scale. Requires ggplot2.
 #'
 #' @param x A 3D prediction array with simulations in the third dimension.
 #' @param metric Metric to order by. Must be a column returned by
 #'   [mobility_metrics()].
 #' @param probs Quantiles to select.
-#' @param ... Further arguments passed to [graphics::image()].
+#' @param scale Colour transformation: `"log1p"` (default) or `"identity"`.
+#'   Log1p accommodates zero flows and makes smaller flows visible.
+#' @param ... Further arguments passed to [ggplot2::geom_tile()].
 #'
 #' @return Invisibly returns the selected matrices.
 #' @export
 plot_uncertainty <- function(x,
                              metric = "total",
                              probs = c(0.025, 0.5, 0.975),
+                             scale = c("log1p", "identity"),
                              ...) {
-  selected <- uncertainty_matrices(x, metric = metric, probs = probs)
-  old_par <- graphics::par(no.readonly = TRUE)
-  on.exit(graphics::par(old_par), add = TRUE)
-
-  graphics::par(mfrow = c(1, length(selected)))
-  selected_table <- attr(selected, "selected")
-  for (i in seq_along(selected)) {
-    graphics::image(
-      t(selected[[i]][rev(seq_len(nrow(selected[[i]]))), , drop = FALSE]),
-      main = sprintf(
-        "%s\n%s = %s",
-        names(selected)[i],
-        metric,
-        format(selected_table$value[[i]], digits = 3)
-      ),
-      xlab = "",
-      ylab = "",
-      axes = FALSE,
-      ...
-    )
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Install ggplot2 to plot uncertainty matrices", call. = FALSE)
   }
+  scale <- match.arg(scale)
+  selected <- uncertainty_matrices(x, metric = metric, probs = probs)
+  selection <- attr(selected, "selected")
+  origins <- rownames(selected[[1]])
+  destinations <- colnames(selected[[1]])
+  if (is.null(origins)) origins <- as.character(seq_len(nrow(selected[[1]])))
+  if (is.null(destinations)) destinations <- as.character(seq_len(ncol(selected[[1]])))
+  labels <- paste0(100 * selection$prob, "% quantile\n",
+                   format(signif(selection$value, 3), big.mark = ",", trim = TRUE),
+                   " trips")
+  cells <- do.call(rbind, lapply(seq_along(selected), function(i) {
+    out <- expand.grid(origin = origins, destination = destinations,
+                       stringsAsFactors = FALSE)
+    out$trips <- as.vector(selected[[i]])
+    out$draw <- labels[i]
+    out
+  }))
+  cells$origin <- factor(cells$origin, levels = rev(origins))
+  cells$destination <- factor(cells$destination, levels = destinations)
+  cells$draw <- factor(cells$draw, levels = unique(labels))
 
+  breaks <- if (scale == "log1p") {
+    function(x) 10^pretty(log10(pmax(x, 1)), n = 3)
+  } else {
+    ggplot2::waiver()
+  }
+  plot <- ggplot2::ggplot(cells, ggplot2::aes(.data$destination, .data$origin,
+                                              fill = .data$trips)) +
+    ggplot2::geom_tile(...) +
+    ggplot2::facet_wrap(~draw, nrow = 1) +
+    ggplot2::scale_fill_viridis_c(option = "inferno", trans = scale, breaks = breaks,
+                                  labels = function(x) {
+                                    format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+                                  }) +
+    ggplot2::scale_x_discrete(expand = c(0, 0)) +
+    ggplot2::scale_y_discrete(expand = c(0, 0)) +
+    ggplot2::labs(x = "Destination", y = "Origin", fill = "Predicted trips",
+                  caption = paste0("Draws ranked by ", gsub("_", " ", metric),
+                                   "; the same colour scale is used in every panel.")) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
+      strip.text = ggplot2::element_text(face = "bold"),
+      legend.position = "bottom",
+      legend.key.width = grid::unit(1.5, "cm"),
+      plot.caption = ggplot2::element_text(hjust = 0)
+    )
+  print(plot)
   invisible(selected)
 }
 

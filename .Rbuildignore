@@ -23,3 +23,6 @@ analysis
 ^data-raw$
 ^doc$
 ^Meta$
+
+^vignettes/model\.Rmd$
+^vignettes/model_checks$

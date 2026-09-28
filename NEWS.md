@@ -19,6 +19,9 @@
   Scripts relying on silent equal-weight fallback must choose weights explicitly.
 * Adds source-region mapping and `compare_models()`, a reusable interactive
   ensemble comparison. Vignettes explain the workflow and fold long code blocks.
+* Restores the shapefile-to-prediction README and interactive online catalogue.
+  Uncertainty heatmaps use labelled axes and a shared colour scale; the outbreak
+  example includes regional time series.
 * Simplifies the outbreak example to fully observed stochastic SIR infections,
   with fixed transmission assumptions and no fitted reporting fraction.
 * Updates package workflows, restores Windows checks, and adds offline population

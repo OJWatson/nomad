@@ -5,7 +5,8 @@ output: rmarkdown::github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                     fig.path = "man/figures/README-", message = FALSE)
 ```
 
 <!-- badges: start -->
@@ -13,73 +14,118 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 [![Coverage](https://codecov.io/gh/OJWatson/nomad/branch/main/graph/badge.svg)](https://app.codecov.io/gh/OJWatson/nomad)
 <!-- badges: end -->
 
-<img src="man/figures/logo.png" alt="nomad logo" height="75" />
+<img src="man/figures/logo.png" alt="nomad logo" style="height:75px; width:auto;" />
 
 ## Mobility modelling for infectious disease epidemiology
 
-`nomad` provides fitted mobility models, source-data profiles, prediction checks,
-uncertainty summaries and ensembles. The database includes 612 supplied Facebook
-fits across 51 country/territory datasets and two original Zambia fits. Models,
-public covariates and diagnostic plots are bundled for offline use.
+`nomad` helps you predict movement between regions using fitted mobility models.
+Start with your study area's boundaries, add population sizes and distances,
+and use a model from the database to estimate a matrix of trips.
 
-## Installation
+### Installation
 
-Install [JAGS 4.x](https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/)
-for the underlying `mobility` dependency, then install from GitHub. On macOS,
-use the official JAGS 4.3.2 installer; the current rjags package requires JAGS 4:
+Install [JAGS 4.x](https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/),
+then install `nomad` from GitHub. On macOS, use the official JAGS 4.3.2 installer.
 
 ```r
 remotes::install_github("OJWatson/nomad", upgrade = FALSE)
 ```
 
-This is a GitHub distribution; the complete model payload makes the source
-package approximately 156 MiB. CRAN distribution is a separate future task.
+### From a shapefile to mobility predictions
 
-## A first prediction
+Most users will come to `nomad` with a shapefile for which they want mobility
+predictions. You can read your boundaries with `sf`:
 
-Start by finding a dataset with fitted models. Check its prediction period and
-distance units before using it in a downstream analysis.
+```{r, eval=FALSE}
+regions <- sf::st_read("path/to/your/regions.shp")
+```
 
-```{r}
+For a complete example, we use Zambia's district boundaries from the Malaria
+Atlas Project. This download requires the `malariaAtlas` package
+(`install.packages("malariaAtlas")`). If you use your own boundaries, replace
+`name_2` below with the column containing your unique region names.
+
+```{r regions, results="hide"}
 library(nomad)
-mobility_table(country = "COM")[, c(
-  "name", "has_fitted_models", "prediction_period_days", "distance_unit"
-)]
-model <- model_db$com_fb_2025_mod_grav_exp
-M <- predict(model, duration = 21)
-round(M)
+regions <- sf::st_as_sf(
+  malariaAtlas::getShp(ISO = "ZMB", admin_level = "admin2")
+)
 ```
 
-Rows are origins and columns are destinations; values are predicted trips over
-21 days. For new regions, supply a named distance matrix and matching named
-populations, declaring the distance units explicitly:
+For these regions, we need population sizes. `nomad` can fetch a WorldPop raster
+and extract the population cells within each boundary:
 
-```r
-predict(model, newdata = list(D = distances, N = populations), unit = "m", duration = 21)
+```{r population, results="hide"}
+population <- get_pop("ZMB", 2020)
+pop_extract <- unpack_pop(regions, population)
+N <- setNames(
+  round(vapply(pop_extract$pop, sum, numeric(1), na.rm = TRUE)),
+  regions$name_2
+)
 ```
 
-Transferable models support new regions. Basic/finite radiation models support
-their exact original setting only; unsupported requests fail with an explanation.
-Original Zambia CDR/Facebook prediction periods remain unknown, so those models
-can return unscaled predictions with a warning but cannot convert durations.
+Next, calculate the distances between region centroids. We find centroids in a
+projected coordinate system suitable for Zambia, then calculate geographic
+distances in metres. The matrix names and population names must identify the
+same regions in the same order.
 
-The [guided introduction](https://ojwatson.github.io/nomad/articles/introduction.html)
-explains inputs and outputs. The
-[model catalogue](https://ojwatson.github.io/nomad/articles/model.html) includes
-source locations, availability and diagnostics. The
-[selection walkthrough](https://ojwatson.github.io/nomad/articles/selecting-a-model.html)
-covers uncertainty, ensembles and `compare_models()`, an interactive weight slider.
-The outbreak example holds transmission assumptions fixed while comparing mobility.
+```{r distances}
+centroids <- sf::st_centroid(sf::st_geometry(sf::st_transform(regions, 32735)))
+distances <- sf::st_distance(sf::st_transform(centroids, 4326))
+D <- matrix(as.numeric(distances), nrow = nrow(regions),
+            dimnames = list(regions$name_2, regions$name_2))
+```
 
-## Provenance and maintenance
+Now choose a model from the [model catalogue](https://ojwatson.github.io/nomad/articles/model.html).
+For this example, we use the Zambia Facebook exponential departure-diffusion
+model and predict movement between our districts:
 
-JHU supplied the new Facebook data/model archives. The fitting recipes are in
-`data-raw/functions/facebook_models.R` and the country scripts under
-`data-raw/models`. Imports preserve the supplied parameters. Private Facebook
-trip matrices are excluded; saved diagnostics remain available.
+```{r prediction}
+model <- model_db$zmb_fb_2025_mod_dd_exp
+M_hat <- predict(model, newdata = list(D = D, N = N), unit = "m")
+```
 
-Kenya 2009, Namibia 2014 and Burkina Faso 2016 CDR datasets remain catalogued with
-`has_fitted_models = FALSE` until their data or fitted models become available.
+Rows are origins and columns are destinations. The matrix contains estimated
+trips on the same time basis as the matrix used to fit the model. The [introduction](https://ojwatson.github.io/nomad/articles/introduction.html)
+explains these inputs and prediction options in more detail.
+
+We can plot the predictions as a heatmap. Here we show the 20 largest districts
+by population so that the labels remain readable; `M_hat` contains predictions
+for every district.
+
+```{r heatmap, fig.width=8, fig.height=7, dpi=160, fig.alt="Predicted trips between the twenty most populous Zambia districts, with origins on rows and destinations on columns"}
+shown <- names(sort(N, decreasing = TRUE))[1:20]
+flows <- as.data.frame(as.table(M_hat[shown, shown]))
+names(flows) <- c("origin", "destination", "trips")
+flows$origin <- factor(flows$origin, levels = rev(shown))
+flows$destination <- factor(flows$destination, levels = shown)
+
+ggplot2::ggplot(flows, ggplot2::aes(destination, origin, fill = trips)) +
+  ggplot2::geom_tile() +
+  ggplot2::scale_fill_viridis_c(
+    option = "inferno", trans = "log1p",
+    breaks = function(x) 10^pretty(log10(pmax(x, 1)), n = 3),
+    labels = function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+  ) +
+  ggplot2::coord_equal() +
+  ggplot2::labs(x = "Destination", y = "Origin", fill = "Estimated trips") +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    panel.grid = ggplot2::element_blank(),
+    axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
+    legend.position = "bottom",
+    legend.key.width = grid::unit(1.5, "cm")
+  )
+```
+
+### Where to go next
+
+- [Introduction](https://ojwatson.github.io/nomad/articles/introduction.html): understand model inputs, predictions and time scaling.
+- [Models and mobility data](https://ojwatson.github.io/nomad/articles/model.html): browse the searchable catalogue, explore coverage on the map and inspect model fits.
+- [Selecting a mobility model](https://ojwatson.github.io/nomad/articles/selecting-a-model.html): compare candidates, explore uncertainty and combine predictions.
+- [An outbreak example](https://ojwatson.github.io/nomad/articles/outbreak-model-selection.html): see how mobility assumptions affect a spatial epidemic.
+
+### Licenses
 
 Code: [MIT](https://opensource.org/licenses/MIT), copyright OJ Watson.
 Data: [CC-0](https://creativecommons.org/publicdomain/zero/1.0/), attribution requested in reuse.
