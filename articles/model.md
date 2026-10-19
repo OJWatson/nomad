@@ -1,18 +1,34 @@
 # Models and Mobility Data
 
-This page describes the mobility datasets and fitted models available in
-`nomad`. Search the tables for a country or dataset, explore its
-coverage on the map, and inspect the model fit plots before choosing a
-model for your analysis. Expand the code panels to use the same tables
-and plots in R.
+This page brings together the mobility datasets and fitted models
+available in `nomad`. If you have a particular country in mind, you can
+start by finding its datasets in the first table, then use the map to
+explore their coverage. The model table and diagnostic plots further
+down the page show which models were fit to those data and how well they
+reproduced the observed flows.
+
+You can browse everything here without running any code. Each section
+also has an expandable code panel if you would like to make the same
+tables or plots in R, for example to restrict a comparison to the
+datasets relevant to your analysis.
 
 ## Mobility Data
 
-Start by finding data that are representative of your setting: the
-country, spatial aggregation and collection period are useful starting
-points. Search across the table, click a column heading to sort it, or
-expand a row for sampling and censoring details. Datasets without fitted
-models remain visible and are marked in the availability column.
+The first table describes the source data. Alongside the country, it
+helps to look at the spatial scale and collection dates, since these
+determine which movements a model has been fit to explain. For example,
+movement between large administrative areas may provide little
+information about short journeys within a town. Expanding a row gives
+more detail on how the data were sampled and whether flows below a
+reporting threshold were suppressed. Both can affect the observed
+pattern of movement.
+
+To find a dataset, type its name or country code in the search box, or
+click a column heading to sort the table. The fitted-models column
+distinguishes entries we can already use for prediction from datasets
+for which we currently hold only metadata. Those entries remain in the
+table so that the catalogue also records data that may become available
+later.
 
 Show how to browse mobility datasets in R
 
@@ -55,18 +71,36 @@ reactable::reactable(
 )
 ```
 
-The start and end dates describe data collection. The period represented
-by a prediction can differ; expand a dataset’s row to see that period
-separately.
+The start and end dates refer to the collection window. They do not
+necessarily tell us the period represented by a predicted trip count,
+particularly when the matrix used for fitting is an average of repeated
+observations. You can see the prediction period by expanding the
+dataset’s row. Predictions from the newer Facebook models represent trip
+counts over 21 days.
+
+The catalogue can also include shared data and models whose source
+metadata are incomplete. The Zambia Facebook and CDR models from 2020
+are examples for which the prediction period is unavailable. Keeping
+these models accessible allows us to explore their movement patterns,
+but the missing period limits their use for predicting trip totals over
+a particular duration. An unknown entry in the table is therefore a
+reason to consider what information your analysis requires.
 
 ## Where are the data from?
 
-Switch between Facebook and call data records to see the countries
-covered by each source. Hover over a country to highlight it, then click
-for dataset details. Colour shows the number of records in the latest
-catalogued dataset for each country and source; definitions and
-collection periods vary between datasets. The source-region selector
-adds administrative centroids for the newer Facebook datasets.
+The map gives an overview of where the catalogued data come from. Use
+the buttons in the top right to switch between Facebook and call data
+records, then click a country to see its dataset details. Where several
+datasets cover the same country and source, the map displays the most
+recent one. You can find the others in the table above.
+
+Darker shading indicates a larger number of records. This helps show the
+scale of each dataset, although it should not be interpreted as a direct
+comparison of travel rates because the sampling methods, record
+definitions and collection periods differ. For the newer Facebook
+datasets, the source-region selector also adds the administrative
+centroids used in the model inputs. This lets you look more closely at
+the spatial scale represented by a particular dataset.
 
 Show how to make the coverage map in R
 
@@ -160,11 +194,21 @@ function(el, x, ids) {
 
 ## Model Performance
 
-Search for models fitted to a dataset you identified above, or filter by
-country, model family or type. Sort the fit statistics by clicking their
-headings. Compare fit errors within a source dataset, and use the plots
-below to see where models fit well or poorly. Missing DIC means that DIC
-weighting is unavailable for that fit.
+Once you have identified a source dataset, use its name to find the
+corresponding fits in the model table. You can also filter the columns
+by country, model family or type. Clicking a fit statistic sorts the
+table, which is useful for comparing models fit to the same
+observations.
+
+The error measures need to be interpreted in relation to those
+observations. A small RMSE for a dataset with relatively few trips does
+not demonstrate a better model than a larger RMSE for a dataset with
+much higher counts. It is therefore helpful to narrow the table to one
+dataset before comparing fit errors, and then inspect the plots below to
+understand which flows each model misses. Some statistics were not
+supplied for every fit. In particular, missing values for the deviance
+information criterion (DIC) mean that those models cannot be included
+when calculating weights from that statistic.
 
 Show how to compare fitted models in R
 
@@ -196,18 +240,37 @@ reactable::reactable(
 )
 ```
 
-A high stored R-hat indicates that the fit needs convergence review; a
-value near one alone does not establish suitability for your
-application. For a chosen model, `summary(model)` provides
-parameter-level diagnostics. Basic and finite radiation models can only
-predict for their original regions and populations.
+The maximum R-hat column summarises a different aspect of the fit. R-hat
+compares variation within and between sampling chains, so a high value
+suggests that the chains have not adequately explored the same parameter
+distribution. Those fits need further convergence review before relying
+on their parameter estimates. A value close to one is encouraging, but
+you should also inspect the parameter-level summaries available through
+`summary(model)` and consider whether the source data suit your
+application.
+
+The final column indicates whether a model can predict for new regions.
+Basic and finite radiation models are restricted to their original
+regions and populations, even when their stored fit statistics look
+favourable. Other model families can be applied to new inputs, with
+checks and warnings described in the [model selection
+vignette](https://ojwatson.github.io/nomad/articles/selecting-a-model.md).
 
 ## Model Fit Checks
 
-Summary statistics can hide systematic differences between observed and
-fitted flows. Choose a model below to inspect its saved diagnostic plot.
-The first panel compares observed and predicted flows; the residual plot
-helps identify departures that an overall error measure can miss.
+Choose a model from the dropdown to inspect its saved diagnostic plot.
+The first panel compares observed and predicted flows, while the
+residual panel shows the differences between them. For example, a model
+may reproduce the largest flows reasonably well but consistently miss
+smaller ones. Such a pattern can matter for an analysis of how infection
+reaches less connected regions, even when the overall error appears
+small.
+
+These plots describe agreement with the data used to fit each model.
+They help us understand that fit, but do not tell us how well it will
+predict movement in a different place or period. The code below the plot
+shows how to retrieve the same checks and parameter summaries for a
+selected model in R.
 
 Model: ago_fb_2025_mod_dd_exp ago_fb_2025_mod_dd_power
 ago_fb_2025_mod_dd_radiation ago_fb_2025_mod_grav_basic

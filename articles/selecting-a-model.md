@@ -1,12 +1,19 @@
 # Selecting a mobility model
 
-This walkthrough starts with a dataset, compares its fitted models, and
-predicts movement for a common set of regions. You will finish with an
-explicit ensemble and heatmaps comparing several weights. You need
-`nomad`; no private trip data are needed. Long setup and plotting blocks
-can be expanded when you want to inspect the code. Prediction warnings
-are retained in expandable panels beside each result; open them to check
-how the example differs from the fitted setting.
+Once we have prepared a set of regions for an analysis, we still need to
+decide which mobility model to use. Several models may be available for
+a country, and a model that fit its original data well may behave quite
+differently when applied to new populations and distances. This vignette
+works through those choices using the Zambia Facebook models, from
+inspecting their source data to comparing predictions and combining them
+in an ensemble.
+
+All the examples use data included with `nomad`, so you can follow them
+without access to the private trip matrices used for fitting. Longer
+setup and plotting blocks are folded below their descriptions.
+Prediction warnings are also kept in expandable panels beside the
+relevant result, where you can read how our example differs from the
+fitted setting.
 
 ``` r
 
@@ -15,11 +22,17 @@ library(nomad)
 
 ## Find a relevant source
 
-Start with the setting you want to study. Country alone is not enough:
-consider how movement was measured, the administrative scale, and the
-population sampled. Here we inspect the Zambia datasets.
-`has_fitted_models` distinguishes catalogue entries from datasets you
-can actually use for prediction.
+Let’s start by looking at the datasets available for Zambia. Finding
+data from the country of interest is useful, but we also need to
+consider whose movement was recorded and at what spatial scale. For
+example, journeys between large administrative areas may have a
+different relationship with distance from journeys between small urban
+neighbourhoods. The source metadata help us identify these differences
+before we compare the fitted models.
+
+The table below includes whether each dataset has fitted models
+available. Entries with `has_fitted_models = FALSE` describe data in the
+catalogue for which we do not yet have models to use for prediction.
 
 ``` r
 
@@ -35,19 +48,33 @@ mobility_table(country = "ZMB")[, c(
     #> 2 zmb_fb_2020 admin_2     TRUE                                  NA km           
     #> 3 zmb_fb_2025 admin_2     TRUE                                  21 m
 
-The new Facebook models describe an average 21-day trip matrix.
-Collection dates describe when observations were gathered, not the
-interval represented by each prediction. The original Zambia models have
-unknown prediction periods, so we will use the new dataset for this
-comparison.
+We will use `zmb_fb_2025` for the comparison below. Its predictions
+represent trip counts over 21 days. This period is separate from the
+start and end dates over which the observations were collected.
+Averaging a series of matrices retains the 21-day period represented by
+each matrix, rather than making the counts refer to the whole collection
+window.
+
+Datasets and models can be shared through `nomad` even when some of
+their source metadata are unavailable. For example, the earlier Zambia
+Facebook and CDR models from 2020 do not include a prediction period.
+Their predicted patterns of movement can still be explored, but we
+cannot interpret the counts as trips per day or convert them to a chosen
+duration. Looking at metadata completeness therefore helps us decide
+which models can support the analysis we have in mind.
 
 ## Compare fits to the same observations
 
-A dataset can have several fitted model families. The following table
-shows their errors and whether they support new locations. Lower RMSE
-means smaller typical errors against that dataset’s observed flows; it
-is not evidence that a model will transfer successfully to another
-setting.
+Several model families were fit to these observations. We can retrieve
+them with
+[`model_table()`](https://ojwatson.github.io/nomad/reference/model_table.md)
+and compare their root mean squared error (RMSE), which summarises the
+differences between fitted and observed flows. A lower RMSE means that
+the model reproduced these particular observations more closely. This is
+a useful first comparison, although it does not establish how well that
+model will predict movement elsewhere. The table also tells us whether
+each family supports prediction for new regions, which we will need
+later in the example.
 
 ``` r
 
@@ -71,17 +98,31 @@ knitr::kable(candidates[, c("model_type", "mobility_model", "RMSE", "max_rhat", 
 | basic        | radiation           |     831655.6 |            NA | FALSE       |
 | finite       | radiation           |     833481.7 |            NA | FALSE       |
 
-Inspect `max_rhat` alongside fit error. A high stored R-hat raises a
-convergence concern; `rhat_above_1_1` is a review flag, not a claim that
-unflagged fits are validated. Consult `summary(model)` for
-parameter-level diagnostics. Supplied parameters are preserved,
-including flagged fits.
+Before choosing the model with the smallest error, it is also useful to
+look at `max_rhat`. R-hat compares variation within and between the
+chains used to fit the model. A high value raises a concern that the
+chains have not converged, so the reported parameter estimates need
+further review even if the fit error is small. The package preserves the
+supplied fits and flags values above 1.1 through `rhat_above_1_1`. You
+can inspect individual parameters with `summary(model)`; being below the
+flag threshold does not by itself establish that a fit is reliable.
 
-DIC was not calculated for these fits. Requesting DIC weights therefore
-gives an error, including when only one selected model lacks DIC. We can
-instead request RMSE weights because those statistics are available.
-Compare fit-derived weights within one dataset; use deliberate manual
-weights for comparisons across sources.
+We can use the available RMSE values to calculate a set of model
+weights. The chosen statistic needs to be available for every model in
+the comparison. For example, the deviance information criterion (DIC)
+was not calculated for these fits, so we cannot use it to derive their
+weights.
+
+These fit-based weights are most interpretable when the models were fit
+to the same observations. Across different datasets, differences in trip
+counts, spatial aggregation and sampling can change the scale of the
+errors. Combining those errors would then mix differences in the data
+with differences in model performance. For this reason,
+[`model_weights()`](https://ojwatson.github.io/nomad/reference/model_weights.md)
+requires the models to share a source dataset. If we want to compare
+models from different sources, we can choose manual weights and examine
+how our results change across those choices, making clear that the
+weights describe a sensitivity analysis.
 
 ``` r
 
@@ -104,20 +145,31 @@ knitr::kable(weights[, c("name", "RMSE", "weight")], digits = c(0, 1, 3))
 | zmb_fb_2025_mod_rad_basic         |     831655.6 |  0.102 |
 | zmb_fb_2025_mod_rad_finite        |     833481.7 |  0.102 |
 
-Weights are a starting point for sensitivity analysis. They do not
-account for all differences between the source setting and your
-application.
+For these fits, the RMSE weights are proportional to the inverse error
+and normalised to sum to one. A model with half the error of another
+therefore receives twice its weight. This summarises relative fit to the
+Zambia observations, but does not tell us how similar our prediction
+setting is to the source setting or give a probability that each model
+is correct. We will therefore inspect the models and their predictions
+before deciding how to combine them.
 
 ## Inspect the source and diagnostics
 
-We will compare normalised exponential gravity with exponential
-departure-diffusion, both fitted to the same Facebook dataset. These
-examples use fits with stored maximum R-hat of 1.01 and minimum
-effective sample sizes above 600; those summaries inform the choice
-without establishing complete convergence. The profile reports fitted
-distance units, population scale and prediction period; the saved plot
-shows agreement with the original observations even though private trip
-data are not distributed.
+For the rest of this example we will compare normalised exponential
+gravity with exponential departure-diffusion, both fit to `zmb_fb_2025`.
+Each has a stored maximum R-hat of 1.01 and minimum effective sample
+sizes above 600. The effective sample size accounts for similarity
+between successive draws, so it can be much smaller than the number of
+samples stored. These summaries help us choose examples with more
+reassuring sampling diagnostics, although a full convergence assessment
+would also require inspecting the chains themselves.
+
+We can use
+[`model_profile()`](https://ojwatson.github.io/nomad/reference/model_profile.md)
+to see the distance units, population scale and prediction period
+associated with a model. The saved fit checks then let us compare its
+predictions with the original observations, even though the private trip
+matrix itself is not distributed with the package.
 
 ``` r
 
@@ -163,17 +215,28 @@ plot(gravity)
 ![Observed and fitted flows for Zambia exponential
 gravity](selecting-a-model_files/figure-html/unnamed-chunk-7-1.png)
 
-Look for systematic departures from agreement, not only the summary
-error. A good source-data fit still needs the following checks before
-transfer.
+In the observed-versus-predicted panel, flows near the line of agreement
+are those the model reproduces closely. Look for groups of flows that
+are consistently overpredicted or underpredicted, and for patterns in
+the residual panel. For example, a model might fit the largest flows
+reasonably well while missing many small ones, which could matter when
+studying movement into less connected areas.
+
+These checks describe the source fit. Before using it for our own
+regions, we also need to check whether their distances and populations
+are comparable, and whether the model can accept the inputs we want to
+provide. The next step sets up a small prediction request so we can work
+through those checks.
 
 ## Prepare a common prediction setting
 
-For a small example, take eight regions from the source covariates. Rows
-of `D` identify origins, columns identify destinations, and `N` gives
-each region’s population. The example preserves those names so
-predictions can be aligned. In a real application, replace these with
-your regions and population estimates.
+To keep the matrices small enough to inspect, we will use eight regions
+from the distances and populations used for fitting. The distance matrix
+`D` has origins in its rows and destinations in its columns, while `N`
+gives the population of each region. We keep the region names on both
+inputs so that `nomad` can match the populations to the correct rows and
+columns. For your own analysis, these would be the distances and
+population estimates prepared for your study regions.
 
 ``` r
 
@@ -185,11 +248,20 @@ newdata <- list(
 )
 ```
 
-These distances are in metres. Declaring `unit` makes conversion
-explicit; nomad converts separately for each fitted model. The warnings
-about fewer regions or a smaller population are useful here: this subset
-is smaller than the full source setting. Transfer is supported, but its
-interpretation needs care.
+The source distances are measured in metres, so we supply `unit = "m"`
+when predicting. This tells `nomad` how to interpret our input
+distances. It can then convert them to the units used by each fitted
+model, which is particularly useful when comparing models whose original
+data used different units.
+
+Although we have kept the source populations for these eight regions, we
+have removed the remaining regions from the prediction setting. The
+warnings about fewer regions and a smaller total population draw
+attention to this change. For a model that distributes movement across
+the available destinations, removing destinations can change the
+remaining flows. These predictions therefore describe a new, smaller
+setting; they should not be treated as simply extracting eight rows and
+columns from a prediction for the full source population.
 
 ``` r
 
@@ -230,21 +302,29 @@ Show prediction warnings
     #> ℹ `newdata` population: "1538603"; fitted model source population: "18296043".
     #> • Check that this model is suitable for the population scale being predicted.
 
-Each entry is predicted trips from its row region to its column region
-over 21 days. It is not a probability or a count of unique travellers. A
-42-day request would double these values under a constant-rate
-assumption; it would not model seasonality. Leave duration unset for an
-original Zambia model with an unknown period: unscaled prediction warns,
-whereas duration conversion errors.
+Each entry is a predicted trip count from its row region to its column
+region over 21 days. The counts can include repeated trips by the same
+person. If we requested 42 days, the package would double these values,
+assuming the same average daily trip rate throughout. That conversion
+cannot describe seasonal changes or changes in travel behaviour.
+
+This conversion depends on having a source prediction period. For models
+shared without that information, leaving `duration` unset returns the
+unscaled prediction with a warning. Requesting a conversion instead
+raises an error, since the package cannot calculate the multiplier. Such
+a model may still help us explore relative movement, but we would need
+the missing metadata before using its predictions as trip counts over a
+specified period.
 
 ## Recognise unsupported requests
 
 Basic and finite radiation models retain predictions for their exact
 original regions and populations. They cannot transfer the stored matrix
-to the eight-region subset above. Nomad rejects that request directly,
-including through an ensemble, and explains how to choose a transferable
-model or recalculate radiation with `mobility` when you have the
-necessary trip totals.
+to the eight-region subset above. `nomad` rejects that request directly,
+including through an ensemble, and explains how to choose a model that
+supports new regions or recalculate radiation with `mobility` when you
+have the necessary trip totals. For the original regions, we can
+retrieve the stored prediction without supplying new inputs, as below.
 
 ``` r
 
@@ -255,26 +335,35 @@ dim(original)
 
     #> [1] 115 115
 
-Changing the target country, spatial scale or population of a
-transferable model produces advisory warnings, rather than this
-radiation capability error. Supply `locations` as an `sf` object or
-longitude/latitude table to enable country checks. No bundled model
-represents international travel. Check those warnings before
-interpreting a cross-border prediction.
+For model families that support new inputs, a different country, spatial
+scale or population may still be a valid prediction request. The
+warnings identify those differences so that we can consider whether
+transferring the fitted parameters is reasonable. Country checks require
+`locations`, supplied as an `sf` object or a longitude/latitude table,
+because distances alone do not locate the regions geographically. None
+of the bundled models was fit to international travel, so a prediction
+between countries would require assumptions beyond what those source
+data can establish.
 
 ## Inspect uncertainty
 
-A point prediction uses mean parameter estimates. With `nsim = 100`, a
-supported model returns an array whose third dimension indexes simulated
-matrices. The summary below describes variation in total and
-between-region movement.
+The predictions above use the mean estimates of the fitted parameters.
+To explore how the stored parameter uncertainty affects the predicted
+flows, we can request 100 simulations with `nsim = 100`. For a model
+that supports these simulations, the result is an array containing one
+mobility matrix per draw. We can then use
+[`uncertainty_summary()`](https://ojwatson.github.io/nomad/reference/uncertainty_summary.md)
+to look at quantities such as the total number of trips and the number
+travelling between different regions.
 
 The current `mobility` predictor samples each parameter independently
 from a normal distribution truncated at zero, using its stored mean and
-standard deviation. These are approximate parameter draws, not joint
-samples from the fitted MCMC chains. They omit parameter correlations
-and add no observation noise, uncertainty in populations or distances,
-or uncertainty from transferring the model to another setting.
+standard deviation. The draws therefore approximate the uncertainty in
+each parameter separately. They do not preserve relationships between
+parameters in the original Markov chain Monte Carlo (MCMC) samples.
+These predictions also leave out observation noise, uncertainty in
+populations or distances, and uncertainty about applying the model in
+another setting.
 
 ``` r
 
@@ -322,12 +411,18 @@ Show prediction warnings
     #> ℹ `newdata` population: "1538603"; fitted model source population: "18296043".
     #> • Check that this model is suitable for the population scale being predicted.
 
-The selected matrices represent lower, middle and upper movement
-according to that metric. They are complete draws, rather than a matrix
-made by taking an independent quantile in each cell. Changing the metric
-may select different draws. All three heatmaps share the same colour
-scale, so the same colour means the same trip count. The colour scale
-uses log(1 + trips) to keep smaller flows visible, including zeros.
+To visualise the variation, we select draws near the 10th, 50th and 90th
+percentiles of between-region movement. Each selected matrix comes from
+one complete draw, preserving the pattern of flows that its parameters
+produced. Taking a separate quantile in every cell could instead
+assemble a matrix that was never predicted by any one parameter draw. If
+we ranked by a different quantity, such as the largest individual flow,
+we might select different matrices.
+
+The three heatmaps use a common colour scale so that a given colour
+means the same number of trips in each panel. The scale uses log(1 +
+trips), allowing both large and small flows, including zeros, to remain
+visible.
 
 ``` r
 
@@ -364,21 +459,32 @@ of the median between-region trip total. The movement-rate parameter
 `theta` and distance parameter `delta` have very small stored standard
 deviations relative to their means. In this normalised gravity model,
 total trips are `theta * sum(N)`, which also constrains variation in the
-total. The destination-population exponent `omega` is close to zero.
+total. The destination-population exponent `omega` is close to zero, so
+destination population contributes little to differences between flows
+in this fit.
 
-This measures a narrow part of uncertainty under one fitted model. It
-does not establish that trips in these regions are known that precisely.
-Increasing `nsim` gives more draws from the same approximation; it does
-not add missing sources of uncertainty. Comparing different mobility
-assumptions is therefore a separate, useful sensitivity analysis.
+The narrow spread therefore reflects the stored parameter summaries and
+the prediction method for this particular fitted model. It would be
+misleading to interpret it as the full uncertainty about travel in these
+regions, since it omits the other sources described above. Increasing
+`nsim` would estimate the same approximate distribution more precisely,
+but would not account for those missing sources. To investigate
+uncertainty about model choice, we can instead compare the predictions
+from different plausible models, as in the next section.
 
 ## Compare and combine predictions
 
-Both matrices now describe the same named target regions and period.
-Their difference is meaningful. Using gravity as the baseline, positive
-entries below mean that departure-diffusion predicts more trips. Nomad
-aligns reordered region names and rejects matrices referring to
-different target regions.
+We now have two predictions for the same target regions and period, so
+we can compare their entries directly. Using gravity as the baseline, a
+positive value from `prediction_difference(b, a)` means that
+departure-diffusion predicts more trips for that origin-destination
+pair. The function matches region names if their order differs, and
+raises an error if the matrices refer to different sets of target
+regions.
+
+We can also combine the two models in an ensemble. The example below
+gives 60% of the weight to gravity and 40% to departure-diffusion, then
+compares the total predicted trips with those from each component.
 
 ``` r
 
@@ -425,9 +531,12 @@ Show prediction warnings
     #> ℹ `newdata` population: "1538603"; fitted model source population: "18296043".
     #> • Check that this model is suitable for the population scale being predicted.
 
-These manual weights state our choice explicitly. Equal weights are also
-a valid choice, but nomad will never substitute them when requested
-fit-based weights cannot be calculated.
+Here the weights are choices we have made for the example. We could give
+the models equal influence or calculate fit-based weights for these two
+models, provided we are satisfied that their fit statistics are an
+appropriate basis for the comparison. The weights calculated earlier
+included every model for the dataset, so we would need to restrict that
+calculation to the components we intend to combine.
 
 To see how those choices affect individual flows, compare three fixed
 weights against the gravity prediction. Each panel below shows
@@ -440,7 +549,8 @@ All panels use the same colour limits, centred on zero. The weights are
 illustrative sensitivity choices, not estimates of which model is
 correct. With two fixed component matrices, the difference is
 `weight * (departure - gravity)`, so the pattern stays the same while
-its magnitude changes.
+its magnitude changes. Here `weight` is the share given to
+departure-diffusion.
 
 Show how to compare fixed ensemble weights
 
@@ -537,7 +647,11 @@ Show prediction warnings
     #> ℹ `newdata` population: "1538603"; fitted model source population: "18296043".
     #> • Check that this model is suitable for the population scale being predicted.
 
-Carry several plausible mobility assumptions into your downstream
-analysis. The outbreak vignette demonstrates how changing only mobility
-affects a simple simulated epidemic, with the transmission assumptions
-held fixed.
+The heatmaps show which flows are most affected by changing the ensemble
+weights. Whether those differences matter will depend on what we use the
+mobility matrix for. For example, a modest difference in travel to a
+less connected region might change when an outbreak reaches it, even if
+the total number of trips changes very little. The [outbreak
+example](https://ojwatson.github.io/nomad/articles/outbreak-model-selection.md)
+takes this next step by comparing daily incidence under several mobility
+assumptions while keeping the transmission parameters fixed.

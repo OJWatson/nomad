@@ -17,10 +17,11 @@ library(nomad)
 
 ## Available Data And Models
 
-The mobility catalogue describes the source datasets used to fit models
-in the package. It is the first thing to check because a model fitted to
-the wrong country, period, or spatial scale can be more misleading than
-helpful.
+The mobility catalogue describes the datasets used to fit the models in
+the package. Looking through it helps us find data collected in settings
+similar to our own, taking account of when movement was measured, whose
+journeys were recorded and the size of the regions. These details will
+help us decide which models are worth exploring for our analysis.
 
 ``` r
 
@@ -45,10 +46,12 @@ mobility_table()
     #> #   has_fitted_models <lgl>, prediction_period_days <dbl>, distance_unit <chr>,
     #> #   provenance <chr>
 
-Check `has_fitted_models` before selecting a dataset: some catalogue
-entries are awaiting data and have no model yet. The model catalogue
-below lists the actual fitted variants, along with their source metadata
-and fit statistics.
+Some datasets are included in the catalogue because they may be useful
+for future analyses, although we do not yet have their fitted models.
+The `has_fitted_models` column lets us identify which datasets already
+have models that we can use. We can then look at the model catalogue to
+see the available variants and how well each fit the source data. For
+example, the following returns all the models fit to data from Zambia.
 
 ``` r
 
@@ -81,9 +84,12 @@ model_table(country = "ZMB")
 
 ## Inspect A Model
 
-The model profile summarises the scale and period of the source data.
-This is the quickest way to check whether a model is plausible for a
-prediction task.
+Let’s choose the normalised exponential gravity model fit to the newer
+Zambia Facebook data. We can use
+[`model_profile()`](https://ojwatson.github.io/nomad/reference/model_profile.md)
+to see the number of source regions, their populations and distances,
+and the period represented by a prediction. This gives us a starting
+point for comparing the source setting with our own.
 
 ``` r
 
@@ -103,8 +109,13 @@ model_profile(model)
     #> #   population_max <dbl>, max_rhat <dbl>, min_n_eff <dbl>,
     #> #   rhat_above_1_1 <lgl>, has_mobility_data <lgl>, has_saved_check <lgl>
 
-Model-check statistics and plots are available even when the underlying
-private mobility matrix cannot be bundled.
+We can then look at how well the model reproduced the observed trips
+using [`check()`](https://ojwatson.github.io/nomad/reference/check.md)
+and [`plot()`](https://rdrr.io/r/graphics/plot.default.html). These
+saved summaries are included even when the underlying trip observations
+cannot be shared publicly. The [model selection
+vignette](https://ojwatson.github.io/nomad/articles/selecting-a-model.md)
+explains how to interpret them.
 
 ``` r
 
@@ -132,13 +143,18 @@ plot(model)
 
 ## Prepare A Small Prediction Setting
 
-Predictions use the same data structure as `mobility::predict()`: a
-distance matrix `D` and either one population vector `N` or
-origin/destination vectors `N_orig` and `N_dest`.
+To predict movement, we need a distance matrix `D` and a population
+vector `N` for our regions. These are the same inputs used by
+`mobility::predict()`. If the origins and destinations have different
+populations, they can instead be supplied as `N_orig` and `N_dest`.
 
-Here we make a small, named toy setting. The values are not intended to
-be real Zambia data; they are just enough to show the shape of a
-prediction request.
+Here we construct a small example with five place names. The populations
+and coordinates are invented to show how to arrange the inputs, and
+should not be used as estimates for those places. We multiply the
+distances between the coordinates by 120 to give our example distances
+in kilometres. For your own analysis, you could prepare these inputs
+from a shapefile and population data, as shown in the [README
+example](https://ojwatson.github.io/nomad/).
 
 Show how to construct the example regions
 
@@ -159,9 +175,13 @@ newdata <- list(D = D, N = N)
 
 ## Make A Prediction
 
-This toy request is smaller than the model source data, so `nomad`
-warns. That is deliberate: warnings are part of the workflow, not just
-noise to suppress.
+We can now pass the distances and populations to
+[`predict()`](https://rdrr.io/r/stats/predict.html), specifying that our
+distances are in kilometres. You will see warnings because these five
+regions contain a smaller population and cover fewer locations than the
+data used to fit the model. The prediction can still be calculated, but
+those warnings help us identify differences between our example and the
+setting in which the model was fit.
 
 ``` r
 
@@ -200,21 +220,27 @@ round(M / 1000, 1)
     #> attr(,"data_name")
     #> [1] "zmb_fb_2025"
 
-Rows are origins and columns are destinations. These displayed values
-are in thousands of predicted trips over 21 days, not probabilities. A
-person can contribute more than one trip. The names on the matrix and
-population vector must identify the same regions; nomad aligns named
-populations before prediction.
+The result is a matrix in which rows identify the origin of a trip and
+columns identify its destination. We have divided the values by 1,000 to
+make them easier to read, so a value of 2 represents 2,000 predicted
+trips. These are counts of trips, to which a person may contribute more
+than once. The period is taken from the model metadata and is 21 days
+for this fit. The names on the distance matrix and population vector
+must identify the same regions so that `nomad` can match each population
+to the correct location.
 
-For a real analysis, the next step would be to decide whether the
-warning is acceptable, whether a better-matched model exists, or whether
-the prediction regions should be changed.
+For a real analysis, we would now consider whether the model describes
+movement at a suitable scale for our question. For example, a model fit
+to movement between districts may tell us little about journeys between
+neighbourhoods within a city. Comparing alternatives is useful when
+several models could plausibly describe the movement we want to study.
 
-## Use Source Data When You Want A Clean Demonstration
+## Predict for the source regions
 
-The fitted model also contains public covariates from the source
-setting. Reusing those covariates is useful for checking package
-mechanics without introducing a scale mismatch.
+The fitted model also includes the distances and populations used for
+fitting. These inputs are often called covariates. We can reuse them to
+predict movement for the original regions, which provides a useful
+comparison with predictions for a new setting.
 
 ``` r
 
@@ -231,31 +257,46 @@ M_source[1:5, 1:5]
     #>   ZMB.1.4_1 8.675690e+02     59.55731 2.289578e-03 1.362974e+06 5.927834e+01
     #>   ZMB.1.5_1 1.268509e+05 366863.60721 6.957575e+01 8.098131e+01 1.861987e+06
 
-If a prediction should represent a different time period, supply
-`duration` in days or a `date_start`/`date_end` pair. The new Facebook
-models represent 21-day trip counts; collection dates are a separate
-field. Scaling assumes a constant trip rate. Original Zambia models with
-an unknown prediction period can only return unscaled predictions, with
-a warning.
+## Choose a prediction period
+
+If we want a prediction for a different time period, we can supply
+`duration` in days or a `date_start`/`date_end` pair. This scales the
+prediction in proportion to the period recorded in the model metadata,
+assuming that the average daily trip rate stays constant. For example,
+the request below uses 30 / 21 as its multiplier because the newer
+Facebook models predict trip counts over 21 days. The dates over which
+data were collected are stored separately and do not determine this
+multiplier.
 
 ``` r
 
-cdr_model <- model_db$zmb_fb_2025_mod_dd_exp
-cdr_data <- cdr_model$get_model()$data[c("D", "N_orig", "N_dest")]
-
-M_30 <- predict(cdr_model, newdata = cdr_data, duration = 30)
+M_30 <- predict(model, newdata = source_data, duration = 30)
 attr(M_30, "duration_scale")
 ```
 
     #> [1] 1.428571
 
+The returned `duration_scale` is the multiplier applied to the original
+prediction, in this case approximately 1.43.
+
+Models can also be shared through `nomad` with incomplete source
+metadata, as with the earlier Zambia Facebook and CDR models from 2020.
+Without a prediction period, we can explore their unscaled predictions
+but cannot convert the counts to trips over a specified number of days.
+The package warns when returning such a prediction and raises an error
+if we request a duration conversion. This makes the available models
+accessible while showing where missing information limits their use in
+an analysis.
+
 ## Compare Alternatives
 
-When more than one model is plausible, use model-fit statistics to make
-the comparison explicit.
+Several models were fit to the Zambia Facebook observations. We can
+compare their fit statistics and use
 [`model_weights()`](https://ojwatson.github.io/nomad/reference/model_weights.md)
-gives simple candidate weights from a chosen metric; users should still
-decide whether the source data are relevant.
+to calculate weights from one of those measures. Here we use root mean
+squared error (RMSE), which gives more weight to models that reproduced
+the source observations more closely. This comparison uses models fit to
+the same dataset, so their errors refer to the same observed trips.
 
 ``` r
 
@@ -279,17 +320,22 @@ weights[, c("name", "RMSE", "weight")]
     #> 11 zmb_fb_2025_mod_rad_basic            831656. 0.102   
     #> 12 zmb_fb_2025_mod_rad_finite           833482. 0.102
 
+We can also use
 [`nomad_ensemble()`](https://ojwatson.github.io/nomad/reference/nomad_ensemble.md)
-combines predictions from several models using explicit weights. This
-example compares two families fitted to the same 21-day dataset. Each is
-predicted for the same target regions, so the outputs can be combined.
-The weights sum to one; 0.5 gives each prediction equal influence.
+to combine predictions from several models. For a simple example, we
+will select the exponential departure-diffusion model and combine it
+with the gravity model used above. Both were fit to the same Facebook
+dataset. Because we ask each model to predict for the same regions and
+period, we can take a weighted average of their predicted trip counts.
+We choose weights of 0.5 for this example, giving each model equal
+influence, rather than deriving the weights from their fit statistics.
 
 ``` r
 
+departure_model <- model_db$zmb_fb_2025_mod_dd_exp
 ensemble <- nomad_ensemble(
-  list(cdr = cdr_model, facebook = model),
-  weights = c(cdr = 0.5, facebook = 0.5)
+  list(departure = departure_model, gravity = model),
+  weights = c(departure = 0.5, gravity = 0.5)
 )
 M_ensemble <- predict(ensemble, newdata = newdata, unit = "km")
 ```
@@ -317,10 +363,16 @@ round(sum(M_ensemble))
 
     #> [1] 56989960
 
-## Simulated Predictions
+## Explore parameter uncertainty
 
-With `nsim > 1`, predictions are stochastic draws. `nomad` can summarise
-and select representative lower, median, and upper matrices.
+So far we have used the mean fitted parameters to make each prediction.
+Setting `nsim` to a value greater than one instead gives repeated
+predictions using approximate parameter draws from the stored means and
+standard deviations. The summary below reports how much the total number
+of trips and the number between different regions vary across those
+draws. This captures parameter uncertainty within the selected model,
+while comparing alternative models lets us explore uncertainty about the
+choice of model itself.
 
 ``` r
 
@@ -338,8 +390,11 @@ uncertainty_summary(draws, metrics = c("total", "between_region"))
     #> 5 between_region 0.5    93420244.
     #> 6 between_region 0.975  93436944.
 
-The “Selecting a mobility model” vignette gives more detail on warnings,
-uncertainty summaries, prediction differences, and ensembles. The
-“Identifying a mobility model for an outbreak” vignette shows how model
-choice can be linked to an epidemiological outcome rather than only to
-mobility fit metrics.
+To explore these choices further, [Selecting a mobility
+model](https://ojwatson.github.io/nomad/articles/selecting-a-model.md)
+works through the warnings and uncertainty summaries in more detail, and
+shows how to compare predictions from several models. Once you have a
+set of plausible models, [Identifying a mobility model for an
+outbreak](https://ojwatson.github.io/nomad/articles/outbreak-model-selection.md)
+shows how to compare them using the daily incidence of a simulated
+outbreak.

@@ -74,24 +74,35 @@
 
     
     
-<p>This walkthrough starts with a dataset, compares its fitted models,
-and predicts movement for a common set of regions. You will finish with
-an explicit ensemble and heatmaps comparing several weights. You need
-<code>nomad</code>; no private trip data are needed. Long setup and
-plotting blocks can be expanded when you want to inspect the code.
-Prediction warnings are retained in expandable panels beside each
-result; open them to check how the example differs from the fitted
-setting.</p>
+<p>Once we have prepared a set of regions for an analysis, we still need
+to decide which mobility model to use. Several models may be available
+for a country, and a model that fit its original data well may behave
+quite differently when applied to new populations and distances. This
+vignette works through those choices using the Zambia Facebook models,
+from inspecting their source data to comparing predictions and combining
+them in an ensemble.</p>
+<p>All the examples use data included with <code>nomad</code>, so you
+can follow them without access to the private trip matrices used for
+fitting. Longer setup and plotting blocks are folded below their
+descriptions. Prediction warnings are also kept in expandable panels
+beside the relevant result, where you can read how our example differs
+from the fitted setting.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ojwatson.github.io/nomad/">nomad</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="find-a-relevant-source">Find a relevant source<a class="anchor" aria-label="anchor" href="#find-a-relevant-source"></a>
 </h2>
-<p>Start with the setting you want to study. Country alone is not
-enough: consider how movement was measured, the administrative scale,
-and the population sampled. Here we inspect the Zambia datasets.
-<code>has_fitted_models</code> distinguishes catalogue entries from
-datasets you can actually use for prediction.</p>
+<p>Let’s start by looking at the datasets available for Zambia. Finding
+data from the country of interest is useful, but we also need to
+consider whose movement was recorded and at what spatial scale. For
+example, journeys between large administrative areas may have a
+different relationship with distance from journeys between small urban
+neighbourhoods. The source metadata help us identify these differences
+before we compare the fitted models.</p>
+<p>The table below includes whether each dataset has fitted models
+available. Entries with <code>has_fitted_models = FALSE</code> describe
+data in the catalogue for which we do not yet have models to use for
+prediction.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mobility_table.html">mobility_table</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"ZMB"</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="st">"name"</span>, <span class="st">"aggregation"</span>, <span class="st">"has_fitted_models"</span>, <span class="st">"prediction_period_days"</span>, <span class="st">"distance_unit"</span></span>
@@ -102,20 +113,33 @@ datasets you can actually use for prediction.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> zmb_cdr_20… admin_2     TRUE                                  <span style="color: #BB0000;">NA</span> m            </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> zmb_fb_2020 admin_2     TRUE                                  <span style="color: #BB0000;">NA</span> km           </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> zmb_fb_2025 admin_2     TRUE                                  21 m</span></span></code></pre>
-<p>The new Facebook models describe an average 21-day trip matrix.
-Collection dates describe when observations were gathered, not the
-interval represented by each prediction. The original Zambia models have
-unknown prediction periods, so we will use the new dataset for this
-comparison.</p>
+<p>We will use <code>zmb_fb_2025</code> for the comparison below. Its
+predictions represent trip counts over 21 days. This period is separate
+from the start and end dates over which the observations were collected.
+Averaging a series of matrices retains the 21-day period represented by
+each matrix, rather than making the counts refer to the whole collection
+window.</p>
+<p>Datasets and models can be shared through <code>nomad</code> even
+when some of their source metadata are unavailable. For example, the
+earlier Zambia Facebook and CDR models from 2020 do not include a
+prediction period. Their predicted patterns of movement can still be
+explored, but we cannot interpret the counts as trips per day or convert
+them to a chosen duration. Looking at metadata completeness therefore
+helps us decide which models can support the analysis we have in
+mind.</p>
 </div>
 <div class="section level2">
 <h2 id="compare-fits-to-the-same-observations">Compare fits to the same observations<a class="anchor" aria-label="anchor" href="#compare-fits-to-the-same-observations"></a>
 </h2>
-<p>A dataset can have several fitted model families. The following table
-shows their errors and whether they support new locations. Lower RMSE
-means smaller typical errors against that dataset’s observed flows; it
-is not evidence that a model will transfer successfully to another
-setting.</p>
+<p>Several model families were fit to these observations. We can
+retrieve them with <code><a href="../reference/model_table.html">model_table()</a></code> and compare their root
+mean squared error (RMSE), which summarises the differences between
+fitted and observed flows. A lower RMSE means that the model reproduced
+these particular observations more closely. This is a useful first
+comparison, although it does not establish how well that model will
+predict movement elsewhere. The table also tells us whether each family
+supports prediction for new regions, which we will need later in the
+example.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">candidates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/model_table.html">model_table</a></span><span class="op">(</span>data_name <span class="op">=</span> <span class="st">"zmb_fb_2025"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">candidates</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"model_type"</span>, <span class="st">"mobility_model"</span>, <span class="st">"RMSE"</span>, <span class="st">"max_rhat"</span>, <span class="st">"supports_newdata"</span><span class="op">)</span><span class="op">]</span>,</span>
@@ -222,16 +246,30 @@ setting.</p>
 </tr>
 </tbody>
 </table>
-<p>Inspect <code>max_rhat</code> alongside fit error. A high stored
-R-hat raises a convergence concern; <code>rhat_above_1_1</code> is a
-review flag, not a claim that unflagged fits are validated. Consult
-<code>summary(model)</code> for parameter-level diagnostics. Supplied
-parameters are preserved, including flagged fits.</p>
-<p>DIC was not calculated for these fits. Requesting DIC weights
-therefore gives an error, including when only one selected model lacks
-DIC. We can instead request RMSE weights because those statistics are
-available. Compare fit-derived weights within one dataset; use
-deliberate manual weights for comparisons across sources.</p>
+<p>Before choosing the model with the smallest error, it is also useful
+to look at <code>max_rhat</code>. R-hat compares variation within and
+between the chains used to fit the model. A high value raises a concern
+that the chains have not converged, so the reported parameter estimates
+need further review even if the fit error is small. The package
+preserves the supplied fits and flags values above 1.1 through
+<code>rhat_above_1_1</code>. You can inspect individual parameters with
+<code>summary(model)</code>; being below the flag threshold does not by
+itself establish that a fit is reliable.</p>
+<p>We can use the available RMSE values to calculate a set of model
+weights. The chosen statistic needs to be available for every model in
+the comparison. For example, the deviance information criterion (DIC)
+was not calculated for these fits, so we cannot use it to derive their
+weights.</p>
+<p>These fit-based weights are most interpretable when the models were
+fit to the same observations. Across different datasets, differences in
+trip counts, spatial aggregation and sampling can change the scale of
+the errors. Combining those errors would then mix differences in the
+data with differences in model performance. For this reason,
+<code><a href="../reference/model_weights.html">model_weights()</a></code> requires the models to share a source
+dataset. If we want to compare models from different sources, we can
+choose manual weights and examine how our results change across those
+choices, making clear that the weights describe a sensitivity
+analysis.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/model_weights.html">model_weights</a></span><span class="op">(</span>data_name <span class="op">=</span> <span class="st">"zmb_fb_2025"</span>, metric <span class="op">=</span> <span class="st">"RMSE"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">weights</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"RMSE"</span>, <span class="st">"weight"</span><span class="op">)</span><span class="op">]</span>, digits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -304,21 +342,31 @@ deliberate manual weights for comparisons across sources.</p>
 </tr>
 </tbody>
 </table>
-<p>Weights are a starting point for sensitivity analysis. They do not
-account for all differences between the source setting and your
-application.</p>
+<p>For these fits, the RMSE weights are proportional to the inverse
+error and normalised to sum to one. A model with half the error of
+another therefore receives twice its weight. This summarises relative
+fit to the Zambia observations, but does not tell us how similar our
+prediction setting is to the source setting or give a probability that
+each model is correct. We will therefore inspect the models and their
+predictions before deciding how to combine them.</p>
 </div>
 <div class="section level2">
 <h2 id="inspect-the-source-and-diagnostics">Inspect the source and diagnostics<a class="anchor" aria-label="anchor" href="#inspect-the-source-and-diagnostics"></a>
 </h2>
-<p>We will compare normalised exponential gravity with exponential
-departure-diffusion, both fitted to the same Facebook dataset. These
-examples use fits with stored maximum R-hat of 1.01 and minimum
-effective sample sizes above 600; those summaries inform the choice
-without establishing complete convergence. The profile reports fitted
-distance units, population scale and prediction period; the saved plot
-shows agreement with the original observations even though private trip
-data are not distributed.</p>
+<p>For the rest of this example we will compare normalised exponential
+gravity with exponential departure-diffusion, both fit to
+<code>zmb_fb_2025</code>. Each has a stored maximum R-hat of 1.01 and
+minimum effective sample sizes above 600. The effective sample size
+accounts for similarity between successive draws, so it can be much
+smaller than the number of samples stored. These summaries help us
+choose examples with more reassuring sampling diagnostics, although a
+full convergence assessment would also require inspecting the chains
+themselves.</p>
+<p>We can use <code><a href="../reference/model_profile.html">model_profile()</a></code> to see the distance units,
+population scale and prediction period associated with a model. The
+saved fit checks then let us compare its predictions with the original
+observations, even though the private trip matrix itself is not
+distributed with the package.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gravity</span> <span class="op">&lt;-</span> <span class="va">model_db</span><span class="op">$</span><span class="va">zmb_fb_2025_mod_grav_exp_norm</span></span>
 <span><span class="va">departure</span> <span class="op">&lt;-</span> <span class="va">model_db</span><span class="op">$</span><span class="va">zmb_fb_2025_mod_dd_exp</span></span>
@@ -350,18 +398,29 @@ data are not distributed.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gravity</span><span class="op">)</span></span></code></pre></div>
 <p><img src="selecting-a-model_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="Observed and fitted flows for Zambia exponential gravity" width="768"></p>
-<p>Look for systematic departures from agreement, not only the summary
-error. A good source-data fit still needs the following checks before
-transfer.</p>
+<p>In the observed-versus-predicted panel, flows near the line of
+agreement are those the model reproduces closely. Look for groups of
+flows that are consistently overpredicted or underpredicted, and for
+patterns in the residual panel. For example, a model might fit the
+largest flows reasonably well while missing many small ones, which could
+matter when studying movement into less connected areas.</p>
+<p>These checks describe the source fit. Before using it for our own
+regions, we also need to check whether their distances and populations
+are comparable, and whether the model can accept the inputs we want to
+provide. The next step sets up a small prediction request so we can work
+through those checks.</p>
 </div>
 <div class="section level2">
 <h2 id="prepare-a-common-prediction-setting">Prepare a common prediction setting<a class="anchor" aria-label="anchor" href="#prepare-a-common-prediction-setting"></a>
 </h2>
-<p>For a small example, take eight regions from the source covariates.
-Rows of <code>D</code> identify origins, columns identify destinations,
-and <code>N</code> gives each region’s population. The example preserves
-those names so predictions can be aligned. In a real application,
-replace these with your regions and population estimates.</p>
+<p>To keep the matrices small enough to inspect, we will use eight
+regions from the distances and populations used for fitting. The
+distance matrix <code>D</code> has origins in its rows and destinations
+in its columns, while <code>N</code> gives the population of each
+region. We keep the region names on both inputs so that
+<code>nomad</code> can match the populations to the correct rows and
+columns. For your own analysis, these would be the distances and
+population estimates prepared for your study regions.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">source</span> <span class="op">&lt;-</span> <span class="va">gravity</span><span class="op">$</span><span class="fu">get_model</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">data</span></span>
 <span><span class="va">regions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">source</span><span class="op">$</span><span class="va">D</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span></span>
@@ -369,11 +428,19 @@ replace these with your regions and population estimates.</p>
 <span>  D <span class="op">=</span> <span class="va">source</span><span class="op">$</span><span class="va">D</span><span class="op">[</span><span class="va">regions</span>, <span class="va">regions</span><span class="op">]</span>,</span>
 <span>  N <span class="op">=</span> <span class="va">source</span><span class="op">$</span><span class="va">N_orig</span><span class="op">[</span><span class="va">regions</span><span class="op">]</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>These distances are in metres. Declaring <code>unit</code> makes
-conversion explicit; nomad converts separately for each fitted model.
-The warnings about fewer regions or a smaller population are useful
-here: this subset is smaller than the full source setting. Transfer is
-supported, but its interpretation needs care.</p>
+<p>The source distances are measured in metres, so we supply
+<code>unit = "m"</code> when predicting. This tells <code>nomad</code>
+how to interpret our input distances. It can then convert them to the
+units used by each fitted model, which is particularly useful when
+comparing models whose original data used different units.</p>
+<p>Although we have kept the source populations for these eight regions,
+we have removed the remaining regions from the prediction setting. The
+warnings about fewer regions and a smaller total population draw
+attention to this change. For a model that distributes movement across
+the available destinations, removing destinations can change the
+remaining flows. These predictions therefore describe a new, smaller
+setting; they should not be treated as simply extracting eight rows and
+columns from a prediction for the full source population.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gravity</span>, newdata <span class="op">=</span> <span class="va">newdata</span>, unit <span class="op">=</span> <span class="st">"m"</span>, duration <span class="op">=</span> <span class="fl">21</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
@@ -400,48 +467,65 @@ Show prediction warnings
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Prediction population is much smaller than the fitted source population.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> `newdata` population: <span style="color: #0000BB;">"1538603"</span>; fitted model source population: <span style="color: #0000BB;">"18296043"</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Check that this model is suitable for the population scale being predicted.</span></span></code></pre>
-</details><p>Each entry is predicted trips from its row region to its column
-region over 21 days. It is not a probability or a count of unique
-travellers. A 42-day request would double these values under a
-constant-rate assumption; it would not model seasonality. Leave duration
-unset for an original Zambia model with an unknown period: unscaled
-prediction warns, whereas duration conversion errors.</p>
+</details><p>Each entry is a predicted trip count from its row region to its
+column region over 21 days. The counts can include repeated trips by the
+same person. If we requested 42 days, the package would double these
+values, assuming the same average daily trip rate throughout. That
+conversion cannot describe seasonal changes or changes in travel
+behaviour.</p>
+<p>This conversion depends on having a source prediction period. For
+models shared without that information, leaving <code>duration</code>
+unset returns the unscaled prediction with a warning. Requesting a
+conversion instead raises an error, since the package cannot calculate
+the multiplier. Such a model may still help us explore relative
+movement, but we would need the missing metadata before using its
+predictions as trip counts over a specified period.</p>
 </div>
 <div class="section level2">
 <h2 id="recognise-unsupported-requests">Recognise unsupported requests<a class="anchor" aria-label="anchor" href="#recognise-unsupported-requests"></a>
 </h2>
 <p>Basic and finite radiation models retain predictions for their exact
 original regions and populations. They cannot transfer the stored matrix
-to the eight-region subset above. Nomad rejects that request directly,
-including through an ensemble, and explains how to choose a transferable
-model or recalculate radiation with <code>mobility</code> when you have
-the necessary trip totals.</p>
+to the eight-region subset above. <code>nomad</code> rejects that
+request directly, including through an ensemble, and explains how to
+choose a model that supports new regions or recalculate radiation with
+<code>mobility</code> when you have the necessary trip totals. For the
+original regions, we can retrieve the stored prediction without
+supplying new inputs, as below.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">radiation</span> <span class="op">&lt;-</span> <span class="va">model_db</span><span class="op">$</span><span class="va">zmb_fb_2025_mod_rad_basic</span></span>
 <span><span class="va">original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">radiation</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">original</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 115 115</span></span></code></pre>
-<p>Changing the target country, spatial scale or population of a
-transferable model produces advisory warnings, rather than this
-radiation capability error. Supply <code>locations</code> as an
-<code>sf</code> object or longitude/latitude table to enable country
-checks. No bundled model represents international travel. Check those
-warnings before interpreting a cross-border prediction.</p>
+<p>For model families that support new inputs, a different country,
+spatial scale or population may still be a valid prediction request. The
+warnings identify those differences so that we can consider whether
+transferring the fitted parameters is reasonable. Country checks require
+<code>locations</code>, supplied as an <code>sf</code> object or a
+longitude/latitude table, because distances alone do not locate the
+regions geographically. None of the bundled models was fit to
+international travel, so a prediction between countries would require
+assumptions beyond what those source data can establish.</p>
 </div>
 <div class="section level2">
 <h2 id="inspect-uncertainty">Inspect uncertainty<a class="anchor" aria-label="anchor" href="#inspect-uncertainty"></a>
 </h2>
-<p>A point prediction uses mean parameter estimates. With
-<code>nsim = 100</code>, a supported model returns an array whose third
-dimension indexes simulated matrices. The summary below describes
-variation in total and between-region movement.</p>
+<p>The predictions above use the mean estimates of the fitted
+parameters. To explore how the stored parameter uncertainty affects the
+predicted flows, we can request 100 simulations with
+<code>nsim = 100</code>. For a model that supports these simulations,
+the result is an array containing one mobility matrix per draw. We can
+then use <code><a href="../reference/uncertainty_summary.html">uncertainty_summary()</a></code> to look at quantities such
+as the total number of trips and the number travelling between different
+regions.</p>
 <p>The current <code>mobility</code> predictor samples each parameter
 independently from a normal distribution truncated at zero, using its
-stored mean and standard deviation. These are approximate parameter
-draws, not joint samples from the fitted MCMC chains. They omit
-parameter correlations and add no observation noise, uncertainty in
-populations or distances, or uncertainty from transferring the model to
-another setting.</p>
+stored mean and standard deviation. The draws therefore approximate the
+uncertainty in each parameter separately. They do not preserve
+relationships between parameters in the original Markov chain Monte
+Carlo (MCMC) samples. These predictions also leave out observation
+noise, uncertainty in populations or distances, and uncertainty about
+applying the model in another setting.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gravity</span>, newdata <span class="op">=</span> <span class="va">newdata</span>, unit <span class="op">=</span> <span class="st">"m"</span>, nsim <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="fl">42</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -475,12 +559,17 @@ Show prediction warnings
 <pre><code><span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Prediction population is much smaller than the fitted source population.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> `newdata` population: <span style="color: #0000BB;">"1538603"</span>; fitted model source population: <span style="color: #0000BB;">"18296043"</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Check that this model is suitable for the population scale being predicted.</span></span></code></pre>
-</details><p>The selected matrices represent lower, middle and upper movement
-according to that metric. They are complete draws, rather than a matrix
-made by taking an independent quantile in each cell. Changing the metric
-may select different draws. All three heatmaps share the same colour
-scale, so the same colour means the same trip count. The colour scale
-uses log(1 + trips) to keep smaller flows visible, including zeros.</p>
+</details><p>To visualise the variation, we select draws near the 10th, 50th and
+90th percentiles of between-region movement. Each selected matrix comes
+from one complete draw, preserving the pattern of flows that its
+parameters produced. Taking a separate quantile in every cell could
+instead assemble a matrix that was never predicted by any one parameter
+draw. If we ranked by a different quantity, such as the largest
+individual flow, we might select different matrices.</p>
+<p>The three heatmaps use a common colour scale so that a given colour
+means the same number of trips in each panel. The scale uses log(1 +
+trips), allowing both large and small flows, including zeros, to remain
+visible.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_uncertainty.html">plot_uncertainty</a></span><span class="op">(</span><span class="va">draws</span>, metric <span class="op">=</span> <span class="st">"between_region"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="selecting-a-model_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="Lower, median and upper mobility matrices selected by between-region movement" width="960"></p>
@@ -505,22 +594,30 @@ have very small stored standard deviations relative to their means. In
 this normalised gravity model, total trips are
 <code>theta * sum(N)</code>, which also constrains variation in the
 total. The destination-population exponent <code>omega</code> is close
-to zero.</p>
-<p>This measures a narrow part of uncertainty under one fitted model. It
-does not establish that trips in these regions are known that precisely.
-Increasing <code>nsim</code> gives more draws from the same
-approximation; it does not add missing sources of uncertainty. Comparing
-different mobility assumptions is therefore a separate, useful
-sensitivity analysis.</p>
+to zero, so destination population contributes little to differences
+between flows in this fit.</p>
+<p>The narrow spread therefore reflects the stored parameter summaries
+and the prediction method for this particular fitted model. It would be
+misleading to interpret it as the full uncertainty about travel in these
+regions, since it omits the other sources described above. Increasing
+<code>nsim</code> would estimate the same approximate distribution more
+precisely, but would not account for those missing sources. To
+investigate uncertainty about model choice, we can instead compare the
+predictions from different plausible models, as in the next section.</p>
 </div>
 <div class="section level2">
 <h2 id="compare-and-combine-predictions">Compare and combine predictions<a class="anchor" aria-label="anchor" href="#compare-and-combine-predictions"></a>
 </h2>
-<p>Both matrices now describe the same named target regions and period.
-Their difference is meaningful. Using gravity as the baseline, positive
-entries below mean that departure-diffusion predicts more trips. Nomad
-aligns reordered region names and rejects matrices referring to
-different target regions.</p>
+<p>We now have two predictions for the same target regions and period,
+so we can compare their entries directly. Using gravity as the baseline,
+a positive value from <code>prediction_difference(b, a)</code> means
+that departure-diffusion predicts more trips for that origin-destination
+pair. The function matches region names if their order differs, and
+raises an error if the matrices refer to different sets of target
+regions.</p>
+<p>We can also combine the two models in an ensemble. The example below
+gives 60% of the weight to gravity and 40% to departure-diffusion, then
+compares the total predicted trips with those from each component.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="../reference/prediction_difference.html">prediction_difference</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">a</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt;            destination</span></span>
@@ -551,9 +648,12 @@ Show prediction warnings
 <pre><code><span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Prediction population is much smaller than the fitted source population.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> `newdata` population: <span style="color: #0000BB;">"1538603"</span>; fitted model source population: <span style="color: #0000BB;">"18296043"</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Check that this model is suitable for the population scale being predicted.</span></span></code></pre>
-</details><p>These manual weights state our choice explicitly. Equal weights are
-also a valid choice, but nomad will never substitute them when requested
-fit-based weights cannot be calculated.</p>
+</details><p>Here the weights are choices we have made for the example. We could
+give the models equal influence or calculate fit-based weights for these
+two models, provided we are satisfied that their fit statistics are an
+appropriate basis for the comparison. The weights calculated earlier
+included every model for the dataset, so we would need to restrict that
+calculation to the components we intend to combine.</p>
 <p>To see how those choices affect individual flows, compare three fixed
 weights against the gravity prediction. Each panel below shows
 <strong>ensemble minus gravity</strong>: red cells mean more trips than
@@ -564,7 +664,8 @@ within the same region on the diagonal.</p>
 are illustrative sensitivity choices, not estimates of which model is
 correct. With two fixed component matrices, the difference is
 <code>weight * (departure - gravity)</code>, so the pattern stays the
-same while its magnitude changes.</p>
+same while its magnitude changes. Here <code>weight</code> is the share
+given to departure-diffusion.</p>
 <details><summary>
 Show how to compare fixed ensemble weights
 </summary><div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
@@ -640,10 +741,13 @@ Show prediction warnings
 <pre><code><span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Prediction population is much smaller than the fitted source population.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> `newdata` population: <span style="color: #0000BB;">"1538603"</span>; fitted model source population: <span style="color: #0000BB;">"18296043"</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Check that this model is suitable for the population scale being predicted.</span></span></code></pre>
-</details><p>Carry several plausible mobility assumptions into your downstream
-analysis. The outbreak vignette demonstrates how changing only mobility
-affects a simple simulated epidemic, with the transmission assumptions
-held fixed.</p>
+</details><p>The heatmaps show which flows are most affected by changing the
+ensemble weights. Whether those differences matter will depend on what
+we use the mobility matrix for. For example, a modest difference in
+travel to a less connected region might change when an outbreak reaches
+it, even if the total number of trips changes very little. The <a href="outbreak-model-selection.html">outbreak example</a> takes this
+next step by comparing daily incidence under several mobility
+assumptions while keeping the transmission parameters fixed.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
