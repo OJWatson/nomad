@@ -84,7 +84,7 @@ model_weights <- function(data_name = NULL,
   }
 
   if (length(unique(tbl$data_name)) != 1L) {
-    stop("Fit weights require models fitted to the same dataset; filter by data_name.",
+    stop("Fit weights require models fit to the same dataset; filter by data_name.",
          call. = FALSE)
   }
   values <- tbl[[metric]]

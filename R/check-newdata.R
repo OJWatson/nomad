@@ -64,7 +64,7 @@ warn_distance_scale <- function(source, requested, unit) {
           unit_label(unit)
         ),
         "i" = sprintf(
-          "This model was fitted to {.val %s} data, so predictions may be too fine-grained.",
+          "This model was fit to {.val %s} data, so predictions may be too fine-grained.",
           source_aggregation(source)
         ),
         "*" = "Check that your regions match the spatial scale of the source data."
@@ -82,7 +82,7 @@ warn_distance_scale <- function(source, requested, unit) {
           unit_label(unit)
         ),
         "i" = sprintf(
-          "This model was fitted to {.val %s} data, so predictions may be too coarse.",
+          "This model was fit to {.val %s} data, so predictions may be too coarse.",
           source_aggregation(source)
         ),
         "*" = "Check that your regions match the spatial scale of the source data."

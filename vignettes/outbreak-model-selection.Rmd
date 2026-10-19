@@ -10,29 +10,39 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = FALSE,
-  comment = "#>"
+  comment = "#>",
+  warning = TRUE,
+  fold_warnings = TRUE
 )
 source(system.file("rmarkdown", "folding.R", package = "nomad"))
 ```
 
-Mobility fit statistics are useful, but they are not the only reason to choose
-a model. In an outbreak analysis, the practical question is often whether a
-mobility assumption helps explain the observed spatial pattern of cases.
+When choosing a mobility model for an outbreak analysis, we may be interested in
+how well it explains the spread of infection between regions. A model can fit its
+source mobility data closely yet give a different pattern of spread from another
+plausible model. In this example we will compare those patterns using daily
+incidence, so that both the timing of an outbreak and the number of infections
+contribute to the comparison.
 
-This vignette uses a controlled fictional example. We create a set of regions,
-simulate a spatially coupled stochastic SIR outbreak using one bundled `nomad`
-model as the data-generating mobility assumption, and then ask which package
-model best explains the simulated outbreak snapshot.
+We will first construct a fictional set of regions and simulate an outbreak
+using one of the bundled gravity models. We can then treat the daily new
+infections from that simulation as our observations and ask how well different
+mobility models reproduce them. Knowing which model generated the data makes
+this a useful example for exploring the workflow, although a single simulated
+outbreak cannot tell us which model would be appropriate for a real setting.
 
 ```{r setup}
 library(nomad)
 ```
 
-## A Fictional Place
+## A fictional place
 
-The example has 24 hypothetical regions. The locations and populations are
-invented, but the structure is deliberately similar to an admin-level analysis:
-named regions, a population vector, and a pairwise distance matrix.
+Let's start with 24 hypothetical regions. Each has a name, population size and
+location, giving us the inputs needed to predict a mobility matrix. We use
+invented coordinates to construct pairwise distances in kilometres, rather than
+trying to reproduce the geography of a particular country. The larger central
+population and the smaller surrounding regions give the models a range of
+population sizes and distances over which to predict movement.
 
 ```{r}
 regions <- data.frame(
@@ -70,20 +80,28 @@ newdata <- list(D = D, N = N)
 regions[1:8, ]
 ```
 
-The bundled models were fitted to Zambia mobility data. Here they are used only
-as alternative mobility assumptions in a fictional software example. The point
-is the workflow: predict candidate mobility matrices, run the same transmission
-model under each matrix, and score the resulting spatial outbreak pattern.
+The region names identify the rows and columns of `D` and the entries in `N`.
+Keeping those names consistent lets us use the same inputs with each candidate
+model and match the resulting predictions to the outbreak observations. For an
+applied analysis, we would replace these invented inputs with distances and
+population estimates for the study regions.
 
-## Mobility Candidates From `nomad`
+## Mobility candidates from `nomad`
 
-The candidate mobility matrices come from actual package models. We use
-normalised exponential gravity and exponential departure-diffusion from the same
-21-day dataset; their stored diagnostics are more suitable for a worked example
-than alternatives with pronounced mixing problems. The Facebook
-gravity model is the known data-generating model for this controlled example.
-The Facebook departure-diffusion model is the alternative, and the ensemble weights
-create intermediate candidates.
+We will compare normalised exponential gravity
+(`zmb_fb_2025_mod_grav_exp_norm`) and exponential departure-diffusion
+(`zmb_fb_2025_mod_dd_exp`), both fit to the Zambia Facebook dataset
+`zmb_fb_2025`. These are the two models explored in
+[Selecting a mobility model](selecting-a-model.html). Their parameters were
+estimated from mobility observations. We will use the mean parameter estimates
+to predict movement between our fictional regions and keep them fixed throughout
+the outbreak comparison.
+
+The gravity model will generate the example outbreak, while departure-diffusion
+provides an alternative assumption about movement. We will also examine three
+ensembles with gravity weights of 0.25, 0.5 and 0.75. The helper below produces
+the corresponding matrix for any of these weights, with zero giving only
+departure-diffusion and one giving only gravity.
 
 ```{r}
 gravity_model <- model_db$zmb_fb_2025_mod_grav_exp_norm
@@ -108,313 +126,331 @@ candidate_prediction <- function(weight_gravity) {
 }
 ```
 
-## A Spatially Coupled SIR Model
+## A spatially coupled SIR model
 
-The SIR model below is intentionally compact, but it is a real stochastic
-compartmental model. Each day, susceptible individuals can become infected via
-local prevalence and prevalence imported through the mobility matrix. Infectious
-individuals recover with a daily probability derived from the mean infectious
-period.
+We use a stochastic susceptible-infectious-recovered (SIR) model with daily
+updates. Infection spreads through contacts within each region and with other
+regions, while infectious people recover and remain immune. The mobility matrix
+determines how between-region contacts are distributed.
 
-```{r}
+To obtain those contact shares, we remove within-region trips from the diagonal
+and divide each row by its remaining total. An entry in `P` then gives the share
+of an origin's outward movement going to a particular destination. We use these
+shares to weight infectious prevalence in the destinations. This captures the
+pattern of movement, without treating the source trip counts as daily journeys
+or moving people between their home populations.
+
+```{r coupling, fold=TRUE, fold_label="Show how to turn predicted flows into contact shares"}
 flow_to_coupling <- function(M) {
-  M <- pmax(as.matrix(M), 0)
-  diag(M) <- 0
-
-  row_total <- rowSums(M)
-  P <- M
-  P[row_total > 0, ] <- P[row_total > 0, , drop = FALSE] / row_total[row_total > 0]
-  P[row_total == 0, ] <- 1 / (ncol(M) - 1)
+  P <- as.matrix(M)
   diag(P) <- 0
-  P
+  row_total <- rowSums(P)
+  stopifnot(all(is.finite(P)), all(P >= 0), all(row_total > 0))
+  P / row_total
 }
+```
 
+The force of infection combines local prevalence with this weighted prevalence
+in other regions,
+
+$$
+\lambda_i(t) = \beta\left[(1-\epsilon)\frac{I_i(t)}{N_i}
+  + \epsilon\sum_j P_{ij}\frac{I_j(t)}{N_j}\right].
+$$
+
+Each day we draw new infections and recoveries from binomial distributions,
+using probabilities $1-\exp[-\lambda_i(t)]$ and $1-\exp(-\gamma)$ respectively.
+Both use the compartment sizes at the start of the day and preserve each
+region's population.
+
+For all candidates, we use a transmission rate `beta = 0.35` per day, a recovery
+rate `gamma = 1 / 7` per day and a between-region mixing fraction `epsilon = 0.04`.
+With daily updates, this gives an average infectious duration of about 7.5 days
+and most exposure occurs locally. Starting with 60 infections in
+Central City, we follow the outbreak for 120 days. Keeping these assumptions
+the same lets us compare the effect of changing only the mobility model.
+
+```{r sir, fold=TRUE, fold_label="Show the daily stochastic SIR simulation"}
 simulate_sir <- function(P,
                          N,
-                         days = 45,
+                         days = 120,
                          beta = 0.35,
                          gamma = 1 / 7,
-                         epsilon = 0.28,
+                         epsilon = 0.04,
                          seed_region = "Central City",
                          seed_infections = 60,
                          keep_history = FALSE) {
   S <- round(N)
   I <- setNames(rep(0, length(N)), names(N))
   R <- I
-  C <- I
-
   I[seed_region] <- seed_infections
   S[seed_region] <- S[seed_region] - seed_infections
-  C[seed_region] <- seed_infections
 
-  if (keep_history) {
-    history <- vector("list", days)
-  }
+  incidence <- matrix(0, nrow = days, ncol = length(N),
+                      dimnames = list(seq_len(days), names(N)))
+  if (keep_history) history <- vector("list", days)
   p_recover <- 1 - exp(-gamma)
 
   for (day in seq_len(days)) {
     prevalence <- I / N
     imported <- as.numeric(P %*% prevalence)
-    names(imported) <- names(N)
-
     lambda <- beta * ((1 - epsilon) * prevalence + epsilon * imported)
-    p_infection <- pmin(1 - exp(-lambda), 1)
 
-    new_infections <- stats::rbinom(length(N), pmax(round(S), 0), p_infection)
-    recoveries <- stats::rbinom(length(N), pmax(round(I), 0), p_recover)
-
+    new_infections <- stats::rbinom(length(N), S, 1 - exp(-lambda))
+    recoveries <- stats::rbinom(length(N), I, p_recover)
     S <- S - new_infections
     I <- I + new_infections - recoveries
     R <- R + recoveries
-    C <- C + new_infections
+    incidence[day, ] <- new_infections
+
     if (keep_history) {
-      history[[day]] <- data.frame(day = day, region = names(N),
-                                   new_infections = new_infections,
-                                   susceptible = S, infectious = I, recovered = R,
-                                   cumulative = C)
+      history[[day]] <- data.frame(
+        day = day, region = names(N), new_infections = new_infections,
+        susceptible = S, infectious = I, recovered = R
+      )
     }
   }
 
   if (keep_history) return(do.call(rbind, history))
-  C
+  incidence
 }
 
-mean_sir <- function(P, N, nsim = 80, seed = 1, ...) {
+mean_sir <- function(P, N, days = 120, nsim = 80, seed = 1, ...) {
   set.seed(seed)
-  out <- matrix(0, nrow = length(N), ncol = nsim,
-                dimnames = list(names(N), NULL))
+  total <- matrix(0, nrow = days, ncol = length(N),
+                  dimnames = list(seq_len(days), names(N)))
   for (i in seq_len(nsim)) {
-    out[, i] <- simulate_sir(P, N, ...)
+    total <- total + simulate_sir(P, N, days = days, ...)
   }
-  rowMeans(out)
+  total / nsim
 }
 ```
 
-The force of infection in region `i` is:
+The simulation returns daily new infections by region, or a fuller compartment
+history when `keep_history = TRUE`. We use `mean_sir()` to average incidence over
+80 runs per candidate. These runs capture random infection and recovery events
+with the mobility and transmission parameters held fixed.
 
-```{r, echo = FALSE, results = "asis"}
-cat("`lambda_i = beta * ((1 - epsilon) * I_i / N_i + epsilon * imported_i)`")
-```
+## Simulated outbreak data
 
-where `imported_i` is prevalence pressure from other regions after applying the
-row-normalised mobility matrix. Each origin experiences the average prevalence
-of its destinations, weighted by its outgoing travel shares. This is a simplified
-mixing assumption, not a simulation of travellers moving between compartments.
-The row normalization discards absolute trip volumes; the daily step comes from
-the SIR model, not from treating the 21-day mobility matrix as daily trips.
+We can now generate the observations using the gravity model. Setting a random
+seed makes this particular outbreak reproducible when the vignette is run again.
+The observed incidence consists of new infections during each day; the 60 people
+already infectious at the start are an initial condition and are not counted as
+new infections on day one.
 
-`S`, `I` and `R` track susceptible, infectious and recovered people. New infections
-move people from S to I, and recoveries move them from I to R, preserving each
-region's population. `C` accumulates infections, including the initial seed.
-`beta`, `gamma` and `epsilon` remain fixed across every candidate: only mobility
-changes. The `mean_sir()` helper repeats the simulation to estimate its expected
-cumulative infections.
-
-## Simulated Outbreak Data
-
-We generate one fully observed synthetic outbreak using the gravity model.
-There is no reporting fraction or additional observation model: observed cases
-are cumulative infections from this stochastic realization. Candidate models will
-be compared with these counts using independent simulation averages.
-
-```{r}
+```{r observations}
 truth_coupling <- flow_to_coupling(gravity_flows)
 set.seed(99)
 observed_history <- simulate_sir(truth_coupling, N, keep_history = TRUE)
-last_day <- observed_history[observed_history$day == max(observed_history$day), ]
-observed_cases <- setNames(last_day$cumulative, last_day$region)
-outbreak <- data.frame(
-  region = names(observed_cases),
-  population = as.numeric(N),
-  observed_cases = observed_cases
+observed_incidence <- matrix(
+  observed_history$new_infections, ncol = length(N), byrow = TRUE,
+  dimnames = list(seq_len(120), names(N))
 )
-outbreak[order(outbreak$observed_cases, decreasing = TRUE), ][1:12, ]
 ```
 
-```{r, fig.width = 7.5, fig.height = 5}
-case_plot_data <- data.frame(
-  region = names(observed_cases),
-  observed_cases = as.numeric(observed_cases)
-)
-case_plot_data <- case_plot_data[order(case_plot_data$observed_cases), ]
-case_plot_data$region <- factor(case_plot_data$region, levels = case_plot_data$region)
+The panels below show how the same outbreak develops across all 24 regions.
+Central City has infection from the start, whereas other regions must first
+receive exposure through their connections to infected places. Their arrival
+times and subsequent trajectories depend on those connections as well as on
+random infection and recovery events. The panels share a time axis but have
+separate vertical scales so that the smaller outbreaks remain visible. Use the
+axis values when comparing numbers of infections between regions.
 
-ggplot2::ggplot(case_plot_data, ggplot2::aes(observed_cases, region)) +
-  ggplot2::geom_col(fill = "#33658a", width = 0.75) +
-  ggplot2::scale_x_continuous(
-    labels = function(x) format(round(x), big.mark = ",")
-  ) +
-  ggplot2::labs(
-    title = "Synthetic outbreak snapshot",
-    subtitle = "Observed cumulative cases by fictional region",
-    x = "Observed cumulative cases",
-    y = NULL
-  ) +
-  ggplot2::theme_minimal(base_size = 11) +
-  ggplot2::theme(
-    panel.grid.major.y = ggplot2::element_blank(),
-    plot.title.position = "plot"
-  )
-```
-
-## How the outbreak unfolds
-
-The final case counts hide when infections arrived in each region. These panels
-show daily new infections from the same simulated outbreak, starting after the
-initial seed in Central City. The vertical scales vary by region so that smaller
-outbreaks remain visible; compare timing and curve shape across panels, and use
-the axis values when comparing case numbers.
-
-```{r regional-curves, fig.width=10, fig.height=9, fold=TRUE, fold_label="Show how to plot the regional outbreak curves", fig.alt="Daily new infections over 45 days, shown in separate panels for all 24 fictional regions"}
+```{r regional-curves, fig.width=10, fig.height=9, fold=TRUE, fold_label="Show how to plot the regional outbreak curves", fig.alt="Daily incidence over 120 days in 24 fictional regions, generated with normalised exponential gravity fit to zmb_fb_2025"}
 observed_history$region <- factor(observed_history$region, levels = regions$region)
 ggplot2::ggplot(observed_history, ggplot2::aes(day, new_infections)) +
   ggplot2::geom_area(fill = "#33658a", alpha = 0.15) +
   ggplot2::geom_line(colour = "#33658a", linewidth = 0.45) +
   ggplot2::facet_wrap(~region, ncol = 4, scales = "free_y") +
-  ggplot2::scale_x_continuous(breaks = c(1, 15, 30, 45)) +
-  ggplot2::labs(x = "Day", y = "New infections",
-                title = "The outbreak across regions",
-                subtitle = "One simulated outbreak; vertical scales differ between regions") +
+  ggplot2::scale_x_continuous(breaks = c(1, 40, 80, 120)) +
+  ggplot2::labs(
+    x = "Day", y = "New infections",
+    title = "Daily incidence in the simulated outbreak",
+    subtitle = "Normalised exponential gravity fit to zmb_fb_2025",
+    caption = "One stochastic SIR realisation; vertical scales differ between regions"
+  ) +
   ggplot2::theme_minimal(base_size = 11) +
   ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                  strip.text = ggplot2::element_text(face = "bold"),
                  plot.title.position = "plot")
 ```
 
-## Score Candidate Mobility Models
+## Fit the mobility weight to daily incidence
 
-For each candidate, we predict a mobility matrix with `nomad`, convert it to the
-SIR coupling matrix, run repeated stochastic SIR simulations, and compare the
-mean final cumulative infections with the observed outbreak.
+We will compare five candidate weights, including the two individual models.
+For each weight, we predict the mobility matrix, convert it to contact shares,
+and run the same SIR model 80 times. We then compare the mean daily incidence
+with the observations across all 120 days and all 24 regions. This retains
+information about when cases occurred that would be lost by comparing only the
+final outbreak size.
 
-We compare cumulative infection counts directly, without adjusting each
-candidate's total to match the observations. Log RMSE gives large and small
-outbreaks a more balanced contribution than raw-count RMSE. A smaller value means
-closer agreement for this example; it is not a likelihood or a universal criterion.
+Our objective is the root mean squared difference between `log(1 + observed)`
+and `log(1 + predicted)` daily incidence. The logarithm reduces the dominance of
+the largest counts, allowing discrepancies in smaller outbreaks to contribute,
+and adding one keeps days with no cases in the comparison. Every region-day
+pair has equal weight on this transformed scale. We do not rescale predictions
+to match the observed total, shift their timing, or adjust any transmission
+parameters to improve a candidate's score.
 
-```{r}
+We choose the weight with the smallest error from the five values we tried.
+This gives a simple grid search for the best match to the observed incidence.
+The scores rank these candidates for this outbreak, but do not give probabilities
+that the models are correct or an uncertainty interval for the selected weight.
+
+```{r scores, fold=TRUE, fold_label="Show how to score each candidate against daily incidence"}
 log_rmse <- function(observed, predicted) {
+  stopifnot(identical(dimnames(observed), dimnames(predicted)))
   sqrt(mean((log1p(observed) - log1p(predicted))^2))
 }
 
-score_candidate <- function(weight_gravity) {
+score_candidate <- function(weight_gravity, nsim = 80, seed = 1000) {
   flows <- candidate_prediction(weight_gravity)
-  P <- flow_to_coupling(flows)
-  predicted_infections <- mean_sir(
-    P,
-    N,
-    nsim = 80,
-    seed = 1000 + round(100 * weight_gravity)
+  predicted <- mean_sir(
+    flow_to_coupling(flows), N, nsim = nsim,
+    seed = seed + round(100 * weight_gravity)
   )
-  predicted_cases <- predicted_infections
-
   list(
-    prediction = predicted_cases,
+    prediction = predicted,
     score = data.frame(
-      candidate = sprintf("%s%% Facebook gravity", round(100 * weight_gravity)),
       weight_gravity = weight_gravity,
-      log_RMSE = log_rmse(observed_cases, predicted_cases),
-      total_predicted_cases = sum(predicted_cases)
+      weight_departure = 1 - weight_gravity,
+      log_RMSE = log_rmse(observed_incidence, predicted)
     )
   )
 }
 
 weights <- c(0, 0.25, 0.5, 0.75, 1)
 candidate_results <- lapply(weights, score_candidate)
-
 scores <- do.call(rbind, lapply(candidate_results, `[[`, "score"))
 scores <- scores[order(scores$log_RMSE), ]
-scores$rank <- seq_len(nrow(scores))
 rownames(scores) <- NULL
-scores
+knitr::kable(
+  scores, digits = 3,
+  col.names = c("Gravity weight", "Departure-diffusion weight", "Daily log RMSE"),
+  caption = paste("Normalised exponential gravity and exponential departure-diffusion",
+                  "fit to zmb_fb_2025; scored against the synthetic daily incidence")
+)
 ```
 
-The table ranks candidates for this simulated realization. The generating model
-is known here, but stochastic variation means it need not always rank first.
-Interpret the score together with the residual plots and consider sensitivity to
-simulation variability before drawing conclusions.
+The lowest score in this run occurs at a gravity weight of
+`r scores$weight_gravity[1]`. Although gravity generated the observations, the
+observed outbreak is only one stochastic realisation, so its trajectory will
+differ from the mean over repeated simulations. A nearby ensemble can sometimes
+score better for that reason. The candidate means also vary between batches of simulations because each is
+estimated from a finite number of runs. If scores are close,
+we would want to repeat the calculation with more simulations and different
+seeds before treating their ordering as meaningful.
 
-## Inspect The Residual Pattern
+## Compare observed and predicted incidence
 
-A score gives the ranking, but the residual pattern shows what each model is
-getting wrong. Here we compare the observed outbreak with the data-generating
-model, the departure-diffusion-only alternative, and the best non-truth ensemble.
+The scatter plot below compares observed daily incidence with the mean predicted
+incidence for gravity, departure-diffusion and the best intermediate ensemble.
+That ensemble is the mixture with the lowest score among the three weights
+between zero and one. Each point is one region on one day, with points above the diagonal indicating
+overprediction and points below it indicating underprediction. All three panels
+use the same log(1 + incidence) scales so that small counts and days with no
+infections are visible alongside the largest counts.
 
-```{r}
+```{r comparison-data, fold=TRUE, fold_label="Show how to assemble the observed and predicted daily incidence"}
 prediction_by_weight <- setNames(
-  lapply(candidate_results, `[[`, "prediction"),
-  weights
+  lapply(candidate_results, `[[`, "prediction"), weights
 )
-
 best_ensemble_weight <- scores$weight_gravity[
   scores$weight_gravity > 0 & scores$weight_gravity < 1
 ][1]
-
-comparison <- data.frame(
-  region = names(observed_cases),
-  observed = observed_cases,
-  gravity = round(prediction_by_weight[["1"]]),
-  departure_diffusion = round(prediction_by_weight[["0"]]),
-  best_ensemble = round(prediction_by_weight[[as.character(best_ensemble_weight)]])
+comparison_weights <- c(1, best_ensemble_weight, 0)
+comparison_labels <- c(
+  "Gravity", paste0(100 * best_ensemble_weight, "% gravity ensemble"),
+  "Departure-diffusion"
 )
-
-comparison <- comparison[order(comparison$observed, decreasing = TRUE), ]
-comparison[1:12, ]
+comparison <- do.call(rbind, lapply(seq_along(comparison_weights), function(i) {
+  predicted <- prediction_by_weight[[as.character(comparison_weights[i])]]
+  out <- observed_history[, c("day", "region", "new_infections")]
+  out$predicted <- as.vector(t(predicted))
+  out$model <- comparison_labels[i]
+  out$log_difference <- log1p(out$predicted) - log1p(out$new_infections)
+  out
+}))
+comparison$model <- factor(comparison$model, levels = comparison_labels)
 ```
 
-```{r, fig.width = 6.5, fig.height = 5.5}
-prediction_plot_data <- rbind(
-  data.frame(
-    observed = as.numeric(observed_cases),
-    predicted = as.numeric(prediction_by_weight[["1"]]),
-    model = "Facebook gravity"
-  ),
-  data.frame(
-    observed = as.numeric(observed_cases),
-    predicted = as.numeric(prediction_by_weight[[as.character(best_ensemble_weight)]]),
-    model = "Best intermediate ensemble"
-  ),
-  data.frame(
-    observed = as.numeric(observed_cases),
-    predicted = as.numeric(prediction_by_weight[["0"]]),
-    model = "Facebook departure-diffusion"
-  )
-)
-
-axis_labels <- function(x) format(round(x), big.mark = ",")
-
-ggplot2::ggplot(
-  prediction_plot_data,
-  ggplot2::aes(observed, predicted, colour = model, shape = model)
-) +
+```{r incidence-scatter, fig.width=10, fig.height=4.3, fold=TRUE, fold_label="Show how to compare observed and predicted daily incidence", fig.alt="Observed versus predicted daily incidence for gravity, departure-diffusion and the best intermediate ensemble, using models fit to zmb_fb_2025; each point is one region-day"}
+limit <- max(comparison$new_infections, comparison$predicted)
+axis_labels <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+ggplot2::ggplot(comparison, ggplot2::aes(new_infections, predicted, colour = model)) +
   ggplot2::geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey35") +
-  ggplot2::geom_point(size = 2.4, alpha = 0.9) +
-  ggplot2::scale_x_log10(labels = axis_labels) +
-  ggplot2::scale_y_log10(labels = axis_labels) +
-  ggplot2::scale_colour_manual(
-    values = c(
-      "Facebook gravity" = "black",
-      "Best intermediate ensemble" = "#2b83ba",
-      "Facebook departure-diffusion" = "#b2182b"
-    )
+  ggplot2::geom_point(size = 0.7, alpha = 0.18) +
+  ggplot2::facet_wrap(~model, nrow = 1) +
+  ggplot2::scale_colour_manual(values = c("#2166ac", "#e08214", "#b2182b")) +
+  ggplot2::scale_x_continuous(
+    trans = "log1p", limits = c(0, limit), breaks = c(0, 10, 100, 1000, 10000),
+    labels = axis_labels
   ) +
+  ggplot2::scale_y_continuous(
+    trans = "log1p", limits = c(0, limit), breaks = c(0, 10, 100, 1000, 10000),
+    labels = axis_labels
+  ) +
+  ggplot2::coord_fixed() +
   ggplot2::labs(
-    title = "Observed vs predicted outbreak size",
-    subtitle = "Each point is a fictional region; dashed line shows perfect agreement",
-    x = "Observed cumulative cases",
-    y = "Predicted cumulative cases",
-    colour = NULL,
-    shape = NULL
+    x = "Observed daily new infections", y = "Predicted daily new infections",
+    title = "Observed and predicted daily incidence",
+    subtitle = "Normalised exponential gravity and exponential departure-diffusion fit to zmb_fb_2025",
+    caption = "Each point is one region-day; predictions are means of 80 SIR runs per candidate."
   ) +
   ggplot2::theme_minimal(base_size = 11) +
-  ggplot2::theme(
-    legend.position = "bottom",
-    plot.title.position = "plot"
-  )
+  ggplot2::theme(legend.position = "none", panel.grid.minor = ggplot2::element_blank(),
+                 strip.text = ggplot2::element_text(face = "bold"),
+                 plot.title.position = "plot")
 ```
 
-This example demonstrates the 
-workflow of exploring different candidate mobility models, fixing the transmission
-model, scoring in some way (likely better than simple RMSE) against outbreak data, 
-and using the residuals before deciding which mobility assumption is most 
-useful for the epidemiological question.
+The scatter plot makes overall agreement easy to see, but does not show where
+or when the differences occur. The heatmap below retains that information,
+showing the signed log difference for each region and day. Red means predicted
+incidence is higher than observed, while blue means it is lower. A run of red
+followed by blue can suggest that a predicted outbreak is too early. Some
+variation remains even for the generating model, because we are comparing
+simulation averages with one stochastic outbreak.
+
+```{r daily-residuals, fig.width=10, fig.height=10, fold=TRUE, fold_label="Show how to plot daily incidence differences", fig.alt="Region-by-day log incidence differences for three candidates based on the zmb_fb_2025 gravity and departure-diffusion fits"}
+comparison$region <- factor(comparison$region, levels = rev(regions$region))
+limit <- max(abs(comparison$log_difference))
+ggplot2::ggplot(comparison, ggplot2::aes(day, region, fill = log_difference)) +
+  ggplot2::geom_tile() +
+  ggplot2::facet_wrap(~model, ncol = 1) +
+  ggplot2::scale_fill_gradient2(
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0, limits = c(-limit, limit)
+  ) +
+  ggplot2::scale_y_discrete(expand = c(0, 0)) +
+  ggplot2::labs(
+    x = "Day", y = NULL, fill = "log(1 + predicted) - log(1 + observed)",
+    title = "Daily incidence differences by region",
+    subtitle = "Normalised exponential gravity and exponential departure-diffusion fit to zmb_fb_2025"
+  ) +
+  ggplot2::theme_minimal(base_size = 10) +
+  ggplot2::theme(legend.position = "bottom", panel.grid = ggplot2::element_blank(),
+                 strip.text = ggplot2::element_text(face = "bold"),
+                 plot.title.position = "plot")
+```
+
+## Using this approach in an analysis
+
+This example compares mobility assumptions while holding everything else fixed.
+It helps us see whether a change in the predicted pattern of travel changes the
+daily incidence in places we care about. The selected weight is specific to this
+simulated outbreak, the contact model, and the five values we tried. Since the
+same outbreak is used for both choosing the weight and assessing its fit, the
+results show how well the candidates explain these observations. They do not
+yet show how well the selected model would predict a different outbreak or a
+later period that was not used to choose the weight.
+
+In a real analysis, transmission rates, initial infections and the relationship
+between infections and recorded cases would also need justification. Changes in
+those assumptions could compensate for differences between mobility models,
+making the mobility weight difficult to identify from case data alone. The
+simulation averages here include infection and recovery randomness, but do not
+propagate uncertainty in mobility parameters, population sizes or transmission
+parameters. Before using a fitted weight to make forecasts, we would need to
+examine those sources of uncertainty and assess predictions against data that
+were not used to choose the weight.
