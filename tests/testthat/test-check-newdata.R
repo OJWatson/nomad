@@ -21,6 +21,19 @@ test_that("prediction checks warn for mismatched distance and population scale",
   )
 })
 
+test_that("prediction checks distinguish larger distances from the source setting", {
+  mod <- nomad::model_db$zmb_fb_2020_mod_grav_exp
+  newdata <- mod$get_model()$data[c("D", "N_orig", "N_dest")]
+
+  expect_warning(check_prediction_data(mod, newdata), NA)
+  newdata$D <- newdata$D * 100
+  expect_warning(
+    check_prediction_data(mod, newdata),
+    "too coarse",
+    class = "nomad_warning_distance_scale"
+  )
+})
+
 test_that("prediction checks warn for country mismatch and border crossing", {
   testthat::skip_if_not_installed("rnaturalearth")
 
